@@ -2744,7 +2744,7 @@ void char_set_defaults(){
 //	charserv_config.userid[24];
 //	charserv_config.passwd[24];
 //	charserv_config.server_name[20];
-	safestrncpy(charserv_config.wisp_server_name,"Server",sizeof(charserv_config.wisp_server_name));
+	safestrncpy(charserv_config.wisp_server_name,"FuryRO",sizeof(charserv_config.wisp_server_name));
 //	charserv_config.login_ip_str[128];
 	charserv_config.login_ip = 0;
 	charserv_config.login_port = 6900;
