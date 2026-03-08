@@ -454,7 +454,7 @@ OnTimer500:
 	
 OnTouch:
 	if ('main_event == 4){
-		areamonster 'second_map$,92,137,97,126,"Hera's Resentment",3410,12,instance_npcname("anightmare#2")+"::OnFakeHera";
+		areamonster 'second_map$,92,137,97,126,"Hera's Resentment",30410,12,instance_npcname("anightmare#2")+"::OnFakeHera";
 		initnpctimer;
 		//addtimer 500,instance_npcname("anightmare#2")+"::OnHeraTimer";
 		set 'main_event,5;
@@ -468,7 +468,7 @@ OnGuardSpawn:
 		set .@guard_spawn$,instance_npcname("anightmare#2")+"::OnGuardSpawn";
 		if (mobcount('second_map$,.@guard_spawn$) < 1) {
 			mapannounce 'second_map$,"Hera: You did good honey, have a cookie.",bc_map,"0xFF0000",FW_NORMAL,12;
-			monster 'second_map$,122,16,"Hera's Resentment",3419,1;
+			monster 'second_map$,122,16,"Hera's Resentment",30419,1;
 			set 'hera_gid,$@mobid[0];
 			initnpctimer;
 			set 'main_event,7;
@@ -542,8 +542,8 @@ OnTimer60000:
 		if (.@test[UMOB_TARGETID] != 0){
 			
 			unittalk 'lord_gid,"Lord of Hate: Rise from the graves.";
-			areamonster 'third_map$,(.@test[UMOB_X]-12),(.@test[UMOB_Y]-12),(.@test[UMOB_X]+12),(.@test[UMOB_Y]+12),"Undead Knight",3408,1,instance_npcname("Lord of Hate#1")+"::OnUndeadDead";
-			areamonster 'third_map$,(.@test[UMOB_X]-12),(.@test[UMOB_Y]-12),(.@test[UMOB_X]+12),(.@test[UMOB_Y]+12),"Undead Knight",3409,1,instance_npcname("Lord of Hate#1")+"::OnUndeadDead";
+			areamonster 'third_map$,(.@test[UMOB_X]-12),(.@test[UMOB_Y]-12),(.@test[UMOB_X]+12),(.@test[UMOB_Y]+12),"Undead Knight",30408,1,instance_npcname("Lord of Hate#1")+"::OnUndeadDead";
+			areamonster 'third_map$,(.@test[UMOB_X]-12),(.@test[UMOB_Y]-12),(.@test[UMOB_X]+12),(.@test[UMOB_Y]+12),"Undead Knight",30409,1,instance_npcname("Lord of Hate#1")+"::OnUndeadDead";
 		
 		}
 		
@@ -1314,9 +1314,9 @@ OnTouch:
 					}
 					
 					if (anightmare_aline>15){
-						monster 'second_map$,184,114,"Aline",3417,1,instance_npcname("Aline#1")+"::OnAlineDead";
+						monster 'second_map$,184,114,"Aline",30417,1,instance_npcname("Aline#1")+"::OnAlineDead";
 					}else{
-						monster 'second_map$,184,114,"Aline",(3410 + .@aline_at),1,instance_npcname("Aline#1")+"::OnAlineDead";
+						monster 'second_map$,184,114,"Aline",(30410 + .@aline_at),1,instance_npcname("Aline#1")+"::OnAlineDead";
 					}
 					set 'aline_gid,$@mobid[0];
 					hideonnpc instance_npcname("Aline#1");

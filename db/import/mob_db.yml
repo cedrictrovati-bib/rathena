@@ -82,10 +82,10 @@ Header:
   Type: MOB_DB
   Version: 5
 
-Body: 
+Body:
   - Id: 30400
     AegisName: HERA_N
-    Name: Hera Resentment
+    Name: Hera's Resentment
     Level: 98
     Hp: 2934935
     Attack: 4532
@@ -98,9 +98,9 @@ Body:
     Int: 200
     Dex: 170
     Luk: 100
-    AttackRange: 2
-    SkillRange: 11
-    ChaseRange: 13
+    AttackRange: 11
+    SkillRange: 13
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -110,6 +110,12 @@ Body:
     AttackMotion: 150
     DamageMotion: 150
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
+      Assist: true
+      CastSensorIdle: true
   - Id: 30401
     AegisName: GHOST_N
     Name: Remenent of Hate
@@ -125,6 +131,9 @@ Body:
     Int: 72
     Dex: 133
     Luk: 39
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Small
     Race: Formless
     Element: Ghost
@@ -134,6 +143,10 @@ Body:
     AttackMotion: 480
     DamageMotion: 360
     Ai: 01
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30402
     AegisName: SKOGUL_N
     Name: Carrier of Hate
@@ -149,6 +162,9 @@ Body:
     Int: 50
     Dex: 67
     Luk: 52
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -158,6 +174,10 @@ Body:
     AttackMotion: 384
     DamageMotion: 480
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30403
     AegisName: SHADOW_N
     Name: Shadow of Hate
@@ -173,6 +193,9 @@ Body:
     Int: 180
     Dex: 186
     Luk: 70
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 2
     Size: Large
     Race: Formless
     Element: Dark
@@ -182,6 +205,10 @@ Body:
     AttackMotion: 540
     DamageMotion: 432
     Ai: 01
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30404
     AegisName: LORD_N
     Name: Lord of Hate
@@ -197,6 +224,9 @@ Body:
     Int: 109
     Dex: 100
     Luk: 106
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 2
     Size: Large
     Race: Demon
     Element: Dark
@@ -206,6 +236,12 @@ Body:
     AttackMotion: 600
     DamageMotion: 360
     Ai: 06
+    Class: Boss
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
+      Mvp: true
   - Id: 30405
     AegisName: SERVENT_N
     Name: Servent of Hate
@@ -221,6 +257,9 @@ Body:
     Int: 200
     Dex: 166
     Luk: 50
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -230,14 +269,18 @@ Body:
     AttackMotion: 440
     DamageMotion: 432
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30406
     AegisName: HERA_TRUE_N
     Name: Hera's True Form
     Level: 98
-    Hp: 2934935				 
+    Hp: 2934935
     BaseExp: 107250
     JobExp: 37895
-    MvpExp: 53625			   
+    MvpExp: 53625
     Attack: 4532
     Attack2: 8402
     Defense: 35
@@ -248,9 +291,9 @@ Body:
     Int: 200
     Dex: 170
     Luk: 100
-    AttackRange: 2
-    SkillRange: 10
-    ChaseRange: 12
+    AttackRange: 11
+    SkillRange: 13
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -258,12 +301,16 @@ Body:
     WalkSpeed: 130
     AttackDelay: 368
     AttackMotion: 150
-    ClientAttackMotion: 600						 
+    ClientAttackMotion: 600
     DamageMotion: 150
     Ai: 21
     Class: Boss
     Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
       Mvp: true
+      Detector: true
     MvpDrops:
       - Item: Yggdrasilberry
         Rate: 2000
@@ -290,6 +337,9 @@ Body:
     Int: 10
     Dex: 166
     Luk: 50
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Formless
     Element: Dark
@@ -299,9 +349,13 @@ Body:
     AttackMotion: 440
     DamageMotion: 432
     Ai: 01
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30408
     AegisName: U_KNIGHTM_N
-    Name: Fallen Knight
+    Name: Fallen Knight (M)
     Level: 97
     Hp: 84310
     Attack: 2500
@@ -314,6 +368,9 @@ Body:
     Int: 10
     Dex: 166
     Luk: 50
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Formless
     Element: Undead
@@ -323,9 +380,13 @@ Body:
     AttackMotion: 440
     DamageMotion: 432
     Ai: 01
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30409
     AegisName: U_KNIGHTF_N
-    Name: Fallen Knight
+    Name: Fallen Knight (F)
     Level: 97
     Hp: 84310
     Attack: 2200
@@ -338,6 +399,9 @@ Body:
     Int: 10
     Dex: 166
     Luk: 50
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Formless
     Element: Undead
@@ -347,6 +411,10 @@ Body:
     AttackMotion: 440
     DamageMotion: 432
     Ai: 01
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30410
     AegisName: FAKE_HERA_N
     Name: Hera's Resentment
@@ -362,6 +430,9 @@ Body:
     Int: 200
     Dex: 170
     Luk: 100
+    AttackRange: 11
+    SkillRange: 13
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -371,6 +442,10 @@ Body:
     AttackMotion: 1056
     DamageMotion: 480
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30411
     AegisName: ALINE70_N
     Name: Aline
@@ -386,6 +461,9 @@ Body:
     Int: 180
     Dex: 100
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -395,6 +473,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30412
     AegisName: ALINE80_N
     Name: Aline
@@ -410,6 +492,9 @@ Body:
     Int: 185
     Dex: 110
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -419,6 +504,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30413
     AegisName: ALINE85_N
     Name: Aline
@@ -434,6 +523,9 @@ Body:
     Int: 190
     Dex: 120
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -443,6 +535,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30414
     AegisName: ALINE90_N
     Name: Aline
@@ -458,6 +554,9 @@ Body:
     Int: 300
     Dex: 130
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -467,6 +566,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30415
     AegisName: ALINE95_N
     Name: Aline
@@ -482,6 +585,9 @@ Body:
     Int: 200
     Dex: 140
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -491,6 +597,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30416
     AegisName: ALINE99_N
     Name: Aline
@@ -506,6 +616,9 @@ Body:
     Int: 220
     Dex: 150
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -515,6 +628,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30417
     AegisName: ALINE992_N
     Name: Aline
@@ -530,6 +647,9 @@ Body:
     Int: 220
     Dex: 150
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -539,6 +659,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30418
     AegisName: SERAPH_N
     Name: Seraph
@@ -554,6 +678,9 @@ Body:
     Int: 220
     Dex: 150
     Luk: 66
+    AttackRange: 10
+    SkillRange: 12
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -563,6 +690,10 @@ Body:
     AttackMotion: 400
     DamageMotion: 300
     Ai: 06
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
   - Id: 30419
     AegisName: HERA2_N
     Name: Hera's Resentment
@@ -578,6 +709,9 @@ Body:
     Int: 200
     Dex: 170
     Luk: 100
+    AttackRange: 11
+    SkillRange: 13
+    ChaseRange: 1
     Size: Medium
     Race: Demon
     Element: Dark
@@ -587,3 +721,65 @@ Body:
     AttackMotion: 150
     DamageMotion: 150
     Ai: 04
+    Modes:
+      CanMove: true
+      CanAttack: true
+      Aggressive: true
+      Looter: true
+  - Id: 3810
+    AegisName: MD_KING_PORING
+    Name: King Poring
+    Level: 35
+    Hp: 140000
+    Sp: 0
+    BaseExp: 9580
+    JobExp: 8288
+#   MvpExp:
+    Attack: 131
+    Attack2: 119
+    Defense: 20
+    MagicDefense: 20
+    Str: 50
+    Agi: 50
+    Vit: 50
+    Int: 50
+    Dex: 50
+    Luk: 50
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 768
+    AttackMotion: 1632
+    ClientAttackMotion: 288
+    DamageMotion: 576
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+    MvpDrops:
+      - Item: Seed_Of_Yggdrasil
+        Rate: 3000
+      - Item: PoringTownOnion
+        Rate: 1000
+      - Item: PoringTownCarrot
+        Rate: 10
+    Drops:
+      - Item: Large_Jellopy
+        Rate: 3000
+      - Item: Jejellopy
+        Rate: 3000
+      - Item: Blue_Herb
+        Rate: 3000
+      - Item: White_Herb
+        Rate: 3000
+      - Item: Yellow_Herb
+        Rate: 3000
+      - Item: Green_Herb
+        Rate: 3000
+      - Item: Old_Violet_Box
+        Rate: 10

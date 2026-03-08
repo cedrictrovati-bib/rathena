@@ -488,3 +488,5 @@ bra_in01	mapflag	noteleport
 1@antgm	mapflag	noteleport
 2@antgm	mapflag	noteleport
 3@antgm	mapflag	noteleport
+
+lasa_fild01	mapflag	noteleport

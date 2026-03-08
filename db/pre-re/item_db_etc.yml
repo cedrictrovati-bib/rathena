@@ -8216,7 +8216,7 @@ Body:
       if (getiteminfo(getequipid(EQI_HAND_R), ITEMINFO_VIEW) == W_BOW) {
          bonus bHit,5;
          bonus bCritical,5;
-         bonus2 bSkillAtk,47,50;
+         bonus2 bSkillAtk,382,25;
       }
   - Id: 4429
     AegisName: Salamander_Card
