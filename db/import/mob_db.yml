@@ -1,0 +1,589 @@
+# This file is a part of rAthena.
+#   Copyright(C) 2021 rAthena Development Team
+#   https://rathena.org - https://github.com/rathena
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+###########################################################################
+# Monster Database
+###########################################################################
+#
+# Monster Settings
+#
+###########################################################################
+# - Id                      Monster ID.
+#   AegisName               Server name to reference the monster in scripts and lookups, should use no spaces.
+#   Name                    Name in English.
+#   JapaneseName            Name in Japanese. (Default: 'Name' value)
+#   Level                   Level. (Default: 1)
+#   Hp                      Total HP. (Default: 1)
+#   Sp                      Total SP. (Default: 1)
+#   BaseExp                 Base experience gained. (Default: 0)
+#   JobExp                  Job experience gained. (Default: 0)
+#   MvpExp                  MVP experience gained. (Default: 0)
+#   Attack                  Minimum attack in pre-renewal and base attack in renewal. (Default: 0)
+#   Attack2                 Maximum attack in pre-renewal and base magic attack in renewal. (Default: 0)
+#   Defense                 Physical defense of the monster, reduces melee and ranged physical attack/skill damage. (Default: 0)
+#   MagicDefense            Magic defense of the monster, reduces magical skill damage. (Default: 0)
+#   Resistance              Physical resistance of the monster, reduces melee and ranged physical attack/skill damage. (Default: 0)
+#   MagicResistance         Magic resistance of the monster, reduces magical skill damage. (Default: 0)
+#   Str                     Strength which affects attack. (Default: 1)
+#   Agi                     Agility which affects flee. (Default: 1)
+#   Vit                     Vitality which affects defense. (Default: 1)
+#   Int                     Intelligence which affects magic attack. (Default: 1)
+#   Dex                     Dexterity which affects hit rate. (Default: 1)
+#   Luk                     Luck which affects perfect dodge/lucky flee/perfect flee/lucky dodge rate. (Default: 1)
+#   AttackRange             Attack range. (Default: 0)
+#   SkillRange              Skill cast range. (Default: 0)
+#   ChaseRange              Chase range. (Default: 0)
+#   Size                    Size. (Default: Small)
+#   Race                    Race. (Default: Formless)
+#   RaceGroups:             List of secondary groups the monster may be part of. (Optional)
+#     <group>: <value>      Group to toggle.
+#   Element                 Element. (Default: Neutral)
+#   ElementLevel            Level of element. (Default: 1)
+#   WalkSpeed               Walk speed. (Default: DEFAULT_WALK_SPEED)
+#   AttackDelay             Attack speed. (Default: 0)
+#   AttackMotion            Attack animation speed. (Default: 0)
+#   ClientAttackMotion      Client attack speed. (Default: AttackMotion)
+#   DamageMotion            Damage animation speed. (Default: 0)
+#   DamageTaken             Rate at which the monster will receive incoming damage. (Default: 100)
+#   GroupId                 Monster group ID. (Default: 0)
+#   Title                   Monster title. (Default: None)
+#   Ai                      Aegis monster type AI behavior. (Default: 06)
+#   Class                   Aegis monster class. (Default: Normal)
+#   Modes:                  List of unique behavior not defined by AI, Class, or Attribute. (Optional)
+#     <mode>: <value>       Mode to toggle.
+#   MvpDrops:               List of possible MVP prize items. Max of MAX_MVP_DROP. (Optional)
+#     - Item                Item name.
+#       Rate                Drop rate of item. (Default: 1)
+#       RandomOptionGroup   Random Option Group applied to item on drop. (Default: None)
+#       Index               Index used for overwriting item. (Optional)
+#   Drops:                  List of possible normal item drops. Max of MAX_MOB_DROP. (Optional)
+#     - Item                Item name.
+#       Rate                Drop rate of item. (Default: 1)
+#       StealProtected      If the item is shielded from TF_STEAL. (Default: false)
+#       RandomOptionGroup   Random Option Group applied to item on drop. (Default: None)
+#       Index               Index used for overwriting item. (Optional)
+###########################################################################
+
+Header:
+  Type: MOB_DB
+  Version: 5
+
+Body: 
+  - Id: 30400
+    AegisName: HERA_N
+    Name: Hera Resentment
+    Level: 98
+    Hp: 2934935
+    Attack: 4532
+    Attack2: 5402
+    Defense: 25
+    MagicDefense: 40
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 200
+    Dex: 170
+    Luk: 100
+    AttackRange: 2
+    SkillRange: 11
+    ChaseRange: 13
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 130
+    AttackDelay: 368
+    AttackMotion: 150
+    DamageMotion: 150
+    Ai: 06
+  - Id: 30401
+    AegisName: GHOST_N
+    Name: Remenent of Hate
+    Level: 79
+    Hp: 53463
+    Attack: 3022
+    Attack2: 4288
+    Defense: 35
+    MagicDefense: 5
+    Str: 30
+    Agi: 142
+    Vit: 66
+    Int: 72
+    Dex: 133
+    Luk: 39
+    Size: Small
+    Race: Formless
+    Element: Ghost
+    ElementLevel: 1
+    WalkSpeed: 150
+    AttackDelay: 360
+    AttackMotion: 480
+    DamageMotion: 360
+    Ai: 01
+  - Id: 30402
+    AegisName: SKOGUL_N
+    Name: Carrier of Hate
+    Level: 70
+    Hp: 87544
+    Attack: 2110
+    Attack2: 3930
+    Defense: 20
+    MagicDefense: 5
+    Str: 1
+    Agi: 69
+    Vit: 70
+    Int: 50
+    Dex: 67
+    Luk: 52
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 170
+    AttackDelay: 720
+    AttackMotion: 384
+    DamageMotion: 480
+    Ai: 06
+  - Id: 30403
+    AegisName: SHADOW_N
+    Name: Shadow of Hate
+    Level: 97
+    Hp: 143634
+    Attack: 6000
+    Attack2: 7600
+    Defense: 20
+    MagicDefense: 5
+    Str: 150
+    Agi: 152
+    Vit: 30
+    Int: 180
+    Dex: 186
+    Luk: 70
+    Size: Large
+    Race: Formless
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 130
+    AttackDelay: 576
+    AttackMotion: 540
+    DamageMotion: 432
+    Ai: 01
+  - Id: 30404
+    AegisName: LORD_N
+    Name: Lord of Hate
+    Level: 98
+    Hp: 1503383
+    Attack: 4430
+    Attack2: 7232
+    Defense: 47
+    MagicDefense: 23
+    Str: 1
+    Agi: 99
+    Vit: 30
+    Int: 109
+    Dex: 100
+    Luk: 106
+    Size: Large
+    Race: Demon
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 180
+    AttackDelay: 946
+    AttackMotion: 600
+    DamageMotion: 360
+    Ai: 06
+  - Id: 30405
+    AegisName: SERVENT_N
+    Name: Servent of Hate
+    Level: 97
+    Hp: 244310
+    Attack: 3500
+    Attack2: 5100
+    Defense: 20
+    MagicDefense: 5
+    Str: 120
+    Agi: 83
+    Vit: 20
+    Int: 200
+    Dex: 166
+    Luk: 50
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 150
+    AttackDelay: 776
+    AttackMotion: 440
+    DamageMotion: 432
+    Ai: 06
+  - Id: 30406
+    AegisName: HERA_TRUE_N
+    Name: Hera's True Form
+    Level: 98
+    Hp: 2934935				 
+    BaseExp: 107250
+    JobExp: 37895
+    MvpExp: 53625			   
+    Attack: 4532
+    Attack2: 8402
+    Defense: 35
+    MagicDefense: 10
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 200
+    Dex: 170
+    Luk: 100
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 130
+    AttackDelay: 368
+    AttackMotion: 150
+    ClientAttackMotion: 600						 
+    DamageMotion: 150
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+    MvpDrops:
+      - Item: Yggdrasilberry
+        Rate: 2000
+    Drops:
+      - Item: Emperium
+        Rate: 500
+      - Item: Elunium
+        Rate: 5432
+      - Item: Oridecon
+        Rate: 4171
+        StealProtected: true
+  - Id: 30407
+    AegisName: MANIFESTATION_N
+    Name: Manifestation of Hate
+    Level: 97
+    Hp: 244310
+    Attack: 2500
+    Attack2: 3100
+    Defense: 20
+    MagicDefense: 5
+    Str: 120
+    Agi: 83
+    Vit: 20
+    Int: 10
+    Dex: 166
+    Luk: 50
+    Size: Medium
+    Race: Formless
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 150
+    AttackDelay: 576
+    AttackMotion: 440
+    DamageMotion: 432
+    Ai: 01
+  - Id: 30408
+    AegisName: U_KNIGHTM_N
+    Name: Fallen Knight
+    Level: 97
+    Hp: 84310
+    Attack: 2500
+    Attack2: 3100
+    Defense: 40
+    MagicDefense: 5
+    Str: 120
+    Agi: 83
+    Vit: 20
+    Int: 10
+    Dex: 166
+    Luk: 50
+    Size: Medium
+    Race: Formless
+    Element: Undead
+    ElementLevel: 1
+    WalkSpeed: 150
+    AttackDelay: 576
+    AttackMotion: 440
+    DamageMotion: 432
+    Ai: 01
+  - Id: 30409
+    AegisName: U_KNIGHTF_N
+    Name: Fallen Knight
+    Level: 97
+    Hp: 84310
+    Attack: 2200
+    Attack2: 2900
+    Defense: 40
+    MagicDefense: 5
+    Str: 120
+    Agi: 83
+    Vit: 20
+    Int: 10
+    Dex: 166
+    Luk: 50
+    Size: Medium
+    Race: Formless
+    Element: Undead
+    ElementLevel: 1
+    WalkSpeed: 150
+    AttackDelay: 546
+    AttackMotion: 440
+    DamageMotion: 432
+    Ai: 01
+  - Id: 30410
+    AegisName: FAKE_HERA_N
+    Name: Hera's Resentment
+    Level: 98
+    Hp: 2534935
+    Attack: 4532
+    Attack2: 7402
+    Defense: 25
+    MagicDefense: 40
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 200
+    Dex: 170
+    Luk: 100
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 130
+    AttackDelay: 768
+    AttackMotion: 1056
+    DamageMotion: 480
+    Ai: 06
+  - Id: 30411
+    AegisName: ALINE70_N
+    Name: Aline
+    Level: 70
+    Hp: 523634
+    Attack: 6526
+    Attack2: 8646
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 90
+    Vit: 30
+    Int: 180
+    Dex: 100
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 976
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30412
+    AegisName: ALINE80_N
+    Name: Aline
+    Level: 80
+    Hp: 930451
+    Attack: 7426
+    Attack2: 10046
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 92
+    Vit: 30
+    Int: 185
+    Dex: 110
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 776
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30413
+    AegisName: ALINE85_N
+    Name: Aline
+    Level: 85
+    Hp: 1054943
+    Attack: 8431
+    Attack2: 11132
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 94
+    Vit: 30
+    Int: 190
+    Dex: 120
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 776
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30414
+    AegisName: ALINE90_N
+    Name: Aline
+    Level: 90
+    Hp: 1168432
+    Attack: 9431
+    Attack2: 12123
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 96
+    Vit: 30
+    Int: 300
+    Dex: 130
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 676
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30415
+    AegisName: ALINE95_N
+    Name: Aline
+    Level: 95
+    Hp: 1259443
+    Attack: 8426
+    Attack2: 10046
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 98
+    Vit: 30
+    Int: 200
+    Dex: 140
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 776
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30416
+    AegisName: ALINE99_N
+    Name: Aline
+    Level: 99
+    Hp: 1636344
+    Attack: 10431
+    Attack2: 13123
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 220
+    Dex: 150
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 676
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30417
+    AegisName: ALINE992_N
+    Name: Aline
+    Level: 99
+    Hp: 1636344
+    Attack: 10431
+    Attack2: 13123
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 220
+    Dex: 150
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 676
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30418
+    AegisName: SERAPH_N
+    Name: Seraph
+    Level: 98
+    Hp: 1636344
+    Attack: 7431
+    Attack2: 9123
+    Defense: 25
+    MagicDefense: 25
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 220
+    Dex: 150
+    Luk: 66
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 110
+    AttackDelay: 676
+    AttackMotion: 400
+    DamageMotion: 300
+    Ai: 06
+  - Id: 30419
+    AegisName: HERA2_N
+    Name: Hera's Resentment
+    Level: 98
+    Hp: 2934935
+    Attack: 4532
+    Attack2: 5402
+    Defense: 25
+    MagicDefense: 40
+    Str: 1
+    Agi: 100
+    Vit: 30
+    Int: 200
+    Dex: 170
+    Luk: 100
+    Size: Medium
+    Race: Demon
+    Element: Dark
+    ElementLevel: 1
+    WalkSpeed: 130
+    AttackDelay: 368
+    AttackMotion: 150
+    DamageMotion: 150
+    Ai: 04

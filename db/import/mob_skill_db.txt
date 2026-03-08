@@ -1,0 +1,245 @@
+// Custom Mob Skill Database
+//
+// Structure of Database:
+// MobID,Dummy value (info only),State,SkillID,SkillLv,Rate,CastTime,Delay,Cancelable,Target,Condition type,Condition value,val1,val2,val3,val4,val5,Emotion,Chat
+//
+// RATE: the chance of the skill being casted when the condition is fulfilled (10000 = 100%).
+// DELAY: the time (in milliseconds) before attempting to recast the same skill.
+//
+// STATE:
+//	any (except dead) / idle (in standby) / walk (in movement) / dead (on killed) /
+//	loot /attack / angry (like attack, except player has not attacked mob yet) /
+//	chase (following target, after being attacked) / follow (following target,
+//	without being attacked) / anytarget (attack+angry+chase+follow)
+//
+// TARGET:
+//	target (current target) / self / friend / master / randomtarget (any enemy within skill's range)
+//
+//	The following are for ground-skills, a random target tile is selected from the specified area:
+//	    around1 (3x3 area around self) / around2 (5x5 area around self) /
+//	    around3 (7x7 area around self) / around4 (9x9 area around self) /
+//	    around5 (3x3 area around target) / around6 (5x5 area around target) /
+//	    around7 (7x7 area around target) / around8 (9x9 area around target) /
+//	    around = around4
+//
+// CONDITION:
+//	always			Unconditional (no condition value).
+//	onspawn			When mob spawns/respawns (no condition value).
+//	myhpltmaxrate		When mob's HP drops to the specified %.
+//	myhpinrate		When mob's HP is in a certain % range (condition value = lower bound, val1 = upper bound).
+//	mystatuson		If mob has the specified abnormality in status.
+//	mystatusoff		If mob has ended the specified abnormality in status.
+//	friendhpltmaxrate	When mob's friend's HP drops to the specified %.
+//	friendhpinrate		When mob's friend's HP is in a certain % range (condition value = lower bound, val1 = upper bound).
+//	friendstatuson		If friend has the specified abnormality in status.
+//	friendstatusoff		If friend has ended the specified abnormality in status.
+//	attackpcgt		When attack PCs become greater than specified number.
+//	attackpcge		When attack PCs become greater than or equal to the specified number.
+//	slavelt			When number of slaves is less than the original specified number.
+//	slavele			When number of slaves is less than or equal to the original specified number.
+//	closedattacked		When close range melee attacked (no condition value).
+//	longrangeattacked	When long range attacked, ex. bows, guns, ranged skills (no condition value).
+//	skillused		When the specified skill is used on the mob.
+//	afterskill		After mob casts the specified skill.
+//	casttargeted		When a target is in cast range (no condition value).
+//	rudeattacked		When mob is rude attacked (no condition value).
+//	mobnearbygt		When monsters in range become greater than specified number.
+//	groundattacked		When mob is hit by ground targeted skill (no condition value).
+//	damagedgt		When single attack deals greater damage than specified number.
+//	alchemist		When mob has a special AI, is not trickcasting, and is wounded (no condition value).
+//	trickcasting		Used once mob started moving through NPC_RANDOMMOVE until disabled (no condition value).
+//
+//	Status abnormalities specified through the statuson/statusoff system:
+//	    anybad (any type of state change) / stone / freeze / stun / sleep /
+//	    poison / curse / silence / confusion / blind / hiding / sight (unhidden)
+//
+// Note: if a negative MobID is provided, the skill will be treated as 'global':
+//	-1: added for all boss types.
+//	-2: added for all normal types.
+//	-3: added for all mobs.
+
+//lines for db/pre-re/mob_skill_db.txt
+//==============================
+//hera first form
+30400,Hera Resentment@NPC_METAMORPHOSIS,idle,193,1,10000,0,0,no,self,myhpltmaxrate,50,30406,,,,,,
+30400,Hera Resentment@NPC_METAMORPHOSIS,attack,193,1,10000,0,0,no,self,myhpltmaxrate,50,30406,,,,,,
+30400,Hera Resentment@NPC_METAMORPHOSIS,chase,193,1,10000,0,0,no,self,myhpltmaxrate,50,30406,,,,,,
+30400,Hera Resentment@NPC_METAMORPHOSIS,chase,193,1,10000,5000,0,no,self,myhpltmaxrate,70,30406,,,,,,
+30400,Hera Resentment@NPC_METAMORPHOSIS,attack,193,1,10000,5000,0,no,self,myhpltmaxrate,70,30406,,,,,,
+30400,Hera Resentment@NPC_METAMORPHOSIS,idle,193,1,10000,5000,0,no,self,myhpltmaxrate,70,30406,,,,,,
+30400,Hera Resentment@NPC_SUMMONSLAVE,idle,196,2,10000,0,0,no,self,onspawn,0,30407,,,,,,
+30400,Hera Resentment@NPC_SUMMONSLAVE,idle,196,2,10000,0,30000,no,self,slavele,0,30407,,,,,,
+30400,Hera Resentment@NPC_SUMMONSLAVE,attack,196,2,10000,700,30000,no,self,slavele,0,30407,,,,,,
+30400,Hera Resentment@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30400,Hera Resentment@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30400,Hera Resentment@SA_DISPELL,attack,289,5,10000,0,30000,yes,target,always,0,,,,,,,
+30400,Hera Resentment@MG_SOULSTRIKE,attack,13,10,2000,500,5000,yes,target,always,0,,,,,,,
+30400,Hera Resentment@MG_SOULSTRIKE,chase,13,10,2000,500,5000,yes,target,always,0,,,,,,,
+30400,Hera Resentment@NPC_DARKSTRIKE,attack,340,9,2000,700,5000,no,target,always,0,,,,,,,
+30400,Hera Resentment@NPC_DARKSTRIKE,chase,340,9,2000,700,5000,no,target,always,0,,,,,,,
+30400,Hera Resentment@NPC_GRANDDARKNESS,attack,339,5,1000,700,15000,no,self,myhpltmaxrate,90,,,,,,,
+//minions
+30407,Manifestation of hate@NPC_POWERUP,attack,349,5,500,0,30000,yes,self,myhpltmaxrate,99,,,,,,,
+30407,Manifestation of hate@AL_HEAL,attack,28,11,2000,0,15000,yes,friend,friendhpltmaxrate,30,,,,,,,
+30407,Manifestation of hate@AL_HEAL,idle,28,11,2000,0,15000,yes,friend,friendhpltmaxrate,30,,,,,,,
+30407,Manifestation of hate@AL_HEAL,attack,28,11,2000,0,15000,yes,self,myhpltmaxrate,99,,,,,,,
+30407,Manifestation of hate@AL_HEAL,idle,28,11,2000,0,15000,yes,self,myhpltmaxrate,99,,,,,,,
+30407,Manifestation of hate@NPC_CRITICALSLASH,attack,170,1,1000,0,5000,yes,target,always,0,,,,,,,
+30407,Manifestation of hate@AS_GRIMTOOTH,chase,137,5,2000,0,3000,yes,randomtarget,always,0,,,,,,,
+//lord of hate
+30404,Lord of Hate@NPC_SUMMONSLAVE,idle,196,2,10000,0,0,no,self,onspawn,0,30405,,,,,,
+30404,Lord of Hate@NPC_SUMMONSLAVE,idle,196,2,10000,0,30000,no,self,slavele,0,30405,,,,,,
+30404,Lord of Hate@NPC_SUMMONSLAVE,attack,196,2,10000,700,30000,no,self,slavele,0,30405,,,,,,
+30404,Lord of Hate@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30404,Lord of Hate@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30404,Lord of Hate@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,,
+30404,Lord of Hate@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6,
+30404,Lord of Hate@AL_DECAGI,chase,30,48,2000,0,60000,no,target,always,0,,,,,,,
+30404,Lord of Hate@KN_BRANDISHSPEAR,attack,57,10,2000,500,5000,no,target,always,0,,,,,,,
+30404,Lord of Hate@NPC_DARKSTRIKE,chase,340,10,2000,0,5000,yes,target,always,0,,,,,,,
+30404,Lord of Hate@NPC_CHANGEUNDEAD,attack,348,1,2000,0,5000,no,target,always,0,,,,,,,
+30404,Lord of Hate@NPC_AGIUP,attack,350,5,10000,0,120000,yes,self,myhpltmaxrate,20,,,,,,6,
+30404,Lord of Hate@NPC_GRANDDARKNESS,attack,339,10,1000,700,5000,no,self,myhpltmaxrate,50,,,,,,,
+30404,Lord of Hate@NPC_STUNATTACK,attack,179,5,2000,0,0,no,target,always,0,,,,,,,
+30404,Lord of Hate@NPC_DARKSTRIKE,chase,340,10,10000,0,5000,yes,target,skillused,18,,,,,,,
+30404,Lord of Hate@BS_HAMMERFALL,attack,110,10,2000,2000,30000,no,self,myhpltmaxrate,20,,,,,,,
+30404,Lord of Hate@LK_SPIRALPIERCE,attack,397,5,10000,2000,10000,no,target,myhpltmaxrate,80,,,,,,,
+//minions
+30405,Servent of Hate@NPC_SLOWCAST,attack,672,1,2000,1000,30000,no,self,always,0,,,,,,,
+30405,Servent of Hate@NPC_SILENCEATTACK,attack,178,5,500,0,15000,no,target,always,0,,,,,,,
+30405,Servent of Hate@WZ_HEAVENDRIVE,chase,91,5,500,400,5000,yes,target,always,0,,,,,,,
+30405,Servent of Hate@WZ_JUPITEL,attack,84,3,500,300,5000,yes,target,always,0,,,,,,,
+//fake hera
+30410,Fake Hera@NPC_SUICIDE,attack,175,1,9000,0,0,yes,self,always,0,,,,,,,
+//aline starter kit
+30411,Aline 70@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30411,Aline 70@NPC_DARKNESSATTACK,attack,190,7,2000,0,5000,yes,target,always,0,,,,,,,
+30411,Aline 70@BS_HAMMERFALL,attack,110,3,1000,1000,10000,no,target,always,0,,,,,,,
+30411,Aline 70@SM_BASH,attack,5,14,2000,0,5000,yes,target,myhpltmaxrate,30,,,,,,,
+30411,Aline 70@SM_MAGNUM,attack,7,10,500,0,10000,no,self,always,0,,,,,,,
+//Aline Like atroce no power up but high atk
+30412,Aline 80@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30412,Aline 80@KN_TWOHANDQUICKEN,attack,60,30,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,,
+30412,Aline 80@NPC_PULSESTRIKE,attack,661,5,2000,0,15000,yes,self,always,0,,,,,,,
+30412,Aline 80@SM_BASH,attack,5,15,1000,0,7000,yes,target,always,0,,,,,,,
+30412,Aline 80@NPC_DARKNESSATTACK,attack,190,8,500,800,5000,no,target,always,0,,,,,,,
+//Aline Def ignoring no pushing skills
+30413,Aline 85@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30413,Aline 85@LK_SPIRALPIERCE,attack,397,5,10000,2000,10000,no,target,always,0,,,,,,,
+30413,Aline 85@NPC_DARKNESSATTACK,attack,190,8,500,800,5000,no,target,always,0,,,,,,,
+30413,Aline 85@SM_BASH,attack,5,14,1000,0,5000,yes,target,always,0,,,,,,,
+30413,Aline 85@NPC_CRITICALSLASH,attack,170,1,1000,0,5000,yes,target,always,0,,,,,,,
+30413,Aline 85@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,,
+//Aline status ailment
+30414,Aline 90@NJ Crimson Fire Blossom,attack,534,10,10000,1300,0,no,target,afterskill,180,,,,,,,
+30414,Aline 90@NJ Wind Blade,attack,540,10,10000,1300,0,no,target,afterskill,88,,,,,,,
+30414,Aline 90@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30414,Aline 90@NPC_WIDECURSE,chase,677,5,3000,1000,10000,no,self,always,0,,,,,,,
+30414,Aline 90@NPC_WIDECURSE,attack,677,5,3000,1000,10000,no,self,always,0,,,,,,,
+30414,Aline 90@NPC_CRITICALWOUND,attack,673,2,500,0,5000,yes,target,always,0,,,,,,,
+30414,Aline 90@NPC_DARKNESSATTACK,attack,190,10,500,800,5000,no,target,always,0,,,,,,,
+30414,Aline 90@SM_BASH,attack,5,20,1000,0,5000,yes,target,always,0,,,,,,,
+30414,Aline 90@BS_HAMMERFALL,attack,110,10,2000,2000,20000,no,self,myhpltmaxrate,20,,,,,,,
+30414,Aline 90@AL_DECAGI,attack,30,48,500,0,20000,no,target,always,0,,,,,,,
+30414,Aline 90@AL_DECAGI,chase,30,48,500,0,20000,no,target,always,0,,,,,,,
+30414,Aline 90@NPC_WIDESILENCE,attack,663,5,2000,500,20000,no,self,myhpltmaxrate,70,,,,,,,
+30414,Aline 90@NPC_WIDEBLEEDING,attack,665,5,2000,0,30000,yes,self,myhpltmaxrate,50,,,,,,,
+30414,Aline 90@NPC_PETRIFYATTACK,attack,180,10,500,200,15000,no,target,always,0,,,,,,,
+30414,Aline 90@WZ_FROSTNOVA,attack,88,15,500,200,15000,no,self,always,0,,,,,,,
+30414,Aline 90@NPC_CHANGEUNDEAD,attack,348,2,500,0,30000,yes,target,myhpltmaxrate,50,,,,,,,
+//Aline Like High Wizard MVP but no storm gust and heal and cold bolt
+30415,Aline 95@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30415,Aline 95@HW_GANBANTEIN,attack,483,1,10000,500,7000,no,target,always,0,,,,,,,
+30415,Aline 95@WZ_VERMILION,chase,85,21,10000,1000,20000,no,target,always,0,,,,,,,
+30415,Aline 95@WZ_VERMILION,attack,85,21,10000,1000,20000,no,target,always,0,,,,,,,
+30415,Aline 95@MG_COLDBOLT,attack,14,15,10000,1500,20000,yes,target,always,0,,,,,,,
+30415,Aline 95@WZ_FIREPILLAR,attack,80,8,3000,200,1000,yes,target,always,0,,,,,,,
+30415,Aline 95@WZ_METEOR,attack,83,11,10000,1000,20000,no,target,always,0,,,,,,,
+30415,Aline 95@WZ_HEAVENDRIVE,attack,91,5,2000,0,20000,yes,target,always,0,,,,,,,
+30415,Aline 95@WZ_WATERBALL,attack,86,5,5000,0,3000,yes,target,always,0,,,,,,,
+30415,Aline 95@AL_HEAL,attack,28,11,2000,0,15000,yes,self,myhpltmaxrate,40,,,,,,,
+30415,Aline 95@NPC_CHANGETELEKINESIS,attack,169,1,10000,500,300000,no,self,myhpltmaxrate,50,,,,,,,
+//Aline max power
+30416,Aline 99@NJ Wind Blade,attack,540,10,10000,1300,0,no,target,afterskill,88,,,,,,,
+30416,Aline 99@HW_GANBANTEIN,attack,483,1,10000,0,0,no,target,afterskill,397,,,,,,,
+30416,Aline 99@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30416,Aline 99@NPC_WIDECURSE,attack,677,5,3000,500,10000,no,self,always,0,,,,,,,
+30416,Aline 99@NPC_PULSESTRIKE,attack,661,3,2000,0,20000,yes,self,always,0,,,,,,,
+30416,Aline 99@WZ_WATERBALL,attack,86,5,3000,0,12000,yes,target,myhpltmaxrate,50,,,,,,,
+30416,Aline 99@LK_SPIRALPIERCE,attack,397,1,10000,2000,10000,no,target,always,0,,,,,,,
+30416,Aline 99@NPC_DARKNESSATTACK,attack,190,10,500,800,5000,no,target,always,0,,,,,,,
+30416,Aline 99@SM_BASH,attack,5,20,1000,0,5000,yes,target,always,0,,,,,,,
+30416,Aline 99@AL_DECAGI,attack,30,48,500,0,20000,no,target,always,0,,,,,,,
+30416,Aline 99@NPC_HELLJUDGEMENT,attack,662,10,10000,3000,23000,no,self,myhpltmaxrate,30,,,,,,,
+30416,Aline 99@WZ_METEOR,attack,83,10,3000,1000,20000,no,target,always,0,,,,,,,
+30416,Aline 99@NPC_CRITICALSLASH,attack,170,1,1000,0,5000,yes,target,always,0,,,,,,,
+30416,Aline 99@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,20,,,,,,,
+30416,Aline 99@KN_TWOHANDQUICKEN,attack,60,30,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,,
+30416,Aline 99@BS_HAMMERFALL,attack,110,10,2000,2000,20000,no,self,myhpltmaxrate,20,,,,,,,
+30416,Aline 99@WZ_FROSTNOVA,attack,88,15,500,200,15000,no,self,always,0,,,,,,,
+30416,Aline 99@AL_HEAL,attack,28,11,2000,0,10000,yes,self,myhpltmaxrate,40,,,,,,,
+//aline with seraph
+30417,Aline 99@NJ Wind Blade,attack,540,10,10000,1300,0,no,target,afterskill,88,,,,,,,
+30417,Aline 99@HW_GANBANTEIN,attack,483,1,10000,0,0,no,target,afterskill,397,,,,,,,
+30417,Aline 99@MO_BODYRELOCATION,chase,264,1,2000,500,2000,yes,target,always,0,,,,,,,
+30417,Aline 99@NPC_WIDECURSE,attack,677,5,3000,500,10000,no,self,always,0,,,,,,,
+30417,Aline 99@NPC_PULSESTRIKE,attack,661,3,2000,0,20000,yes,self,always,0,,,,,,,
+30417,Aline 99@WZ_WATERBALL,attack,86,5,3000,0,12000,yes,target,myhpltmaxrate,50,,,,,,,
+30417,Aline 99@LK_SPIRALPIERCE,attack,397,1,10000,2000,10000,no,target,always,0,,,,,,,
+30417,Aline 99@NPC_DARKNESSATTACK,attack,190,10,500,800,5000,no,target,always,0,,,,,,,
+30417,Aline 99@SM_BASH,attack,5,20,1000,0,5000,yes,target,always,0,,,,,,,
+30417,Aline 99@AL_DECAGI,attack,30,48,500,0,20000,no,target,always,0,,,,,,,
+30417,Aline 99@NPC_HELLJUDGEMENT,attack,662,10,10000,3000,23000,no,self,myhpltmaxrate,30,,,,,,,
+30417,Aline 99@WZ_METEOR,attack,83,10,3000,1000,20000,no,target,always,0,,,,,,,
+30417,Aline 99@NPC_CRITICALSLASH,attack,170,1,1000,0,5000,yes,target,always,0,,,,,,,
+30417,Aline 99@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,20,,,,,,,
+30417,Aline 99@KN_TWOHANDQUICKEN,attack,60,30,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,,
+30417,Aline 99@BS_HAMMERFALL,attack,110,10,2000,2000,20000,no,self,myhpltmaxrate,20,,,,,,,
+30417,Aline 99@WZ_FROSTNOVA,attack,88,15,500,200,15000,no,self,always,0,,,,,,,
+30417,Aline 99@AL_HEAL,attack,28,11,2000,0,10000,yes,self,myhpltmaxrate,40,,,,,,,
+30417,Aline 99@NPC_SUMMONSLAVE,idle,196,1,10000,0,0,no,self,onspawn,0,30418,,,,,,
+30417,Aline 99@NPC_SUMMONSLAVE,attack,196,1,10000,700,30000,no,self,slavele,0,30418,,,,,,
+//Seraph
+30418,Seraph@HP_ASSUMPTIO,attack,361,5,10000,1000,100000,no,friend,friendhpltmaxrate,60,,,,,,,
+30418,Seraph@AL_HEAL,attack,28,11,2000,0,10000,yes,friend,friendhpltmaxrate,99,,,,,,,
+30418,Seraph@AL_INCAGI,attack,29,10,500,700,60000,no,friend,friendhpltmaxrate,30,,,,,,,
+30418,Seraph@AL_PNEUMA,attack,25,1,500,0,20000,yes,friend,friendhpltmaxrate,99,,,,,,,
+//remenent of hate
+30401,Remenent of Hate@NPC_DARKNESSATTACK,attack,190,2,500,500,5000,no,target,always,0,,,,,,,
+30401,Remenent of Hate@NPC_GRANDDARKNESS,attack,339,3,500,700,5000,no,self,myhpltmaxrate,50,,,,,,,
+30401,Remenent of Hate@NPC_DARKCROSS,attack,338,3,500,700,5000,no,target,always,0,,,,,,,
+30401,Remenent of Hate@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,,
+30401,Remenent of Hate@NPC_DARKBREATH,attack,202,1,500,800,5000,no,target,always,0,,,,,,,
+//carrier of hate
+30402,carrier of hate@TF_HIDING,idle,51,1,2000,0,180000,yes,self,always,0,,,,,,,
+30402,carrier of hate@MG_SOULSTRIKE,chase,13,5,2000,0,3000,yes,target,always,0,,,,,,,
+30402,carrier of hate@AS_GRIMTOOTH,idle,137,5,10000,0,700,yes,randomtarget,mystatuson,hiding,,,,,,,
+30402,carrier of hate@NPC_CURSEATTACK,attack,181,5,1000,0,5000,yes,target,always,0,,,,,,,
+30402,carrier of hate@NPC_DARKNESSATTACK,attack,190,5,1000,0,5000,yes,target,always,0,,,,,,,
+//shadow of hate
+30403,shadow of hate@AL_HEAL,idle,28,11,10000,0,5000,yes,self,myhpltmaxrate,45,,,,,,,
+30403,shadow of hate@NPC_SLOWCAST,attack,672,5,10000,0,30000,yes,self,always,0,,,,,,,
+30403,shadow of hate@NPC_PULSESTRIKE,chase,661,5,2000,0,30000,yes,self,always,0,,,,,,,
+30403,shadow of hate@NPC_PULSESTRIKE,attack,661,5,2000,0,30000,yes,self,always,0,,,,,,,
+30403,shadow of hate@NPC_GRANDDARKNESS,attack,339,5,10000,2000,30000,no,self,myhpltmaxrate,80,,,,,,,
+30403,shadow of hate@NPC_WIDECURSE,chase,677,5,5000,800,10000,no,self,always,0,,,,,,,
+30403,shadow of hate@NPC_WIDECURSE,attack,677,5,5000,800,10000,no,self,always,0,,,,,,,
+//Hera's true form
+30406,Hera's True Form@NPC_HELLJUDGEMENT,attack,662,5,10000,3000,30000,no,self,myhpltmaxrate,50,,,,,,,
+30406,Hera's True Form@NPC_VAMPIRE_GIFT,attack,679,10,20000,500,28000,yes,self,myhpltmaxrate,50,,,,,,,
+30406,Hera's True Form@HW_GANBANTEIN,attack,483,5,10000,0,10000,no,target,myhpinrate,55,60,,,,,,
+30406,Hera's True Form@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,20,,,,,,,
+30406,Hera's True Form@HW_GANBANTEIN,attack,483,1,10000,0,5000,no,target,myhpltmaxrate,20,,,,,,,
+30406,Hera's True Form@AL_PNEUMA,attack,25,1,5000,0,10000,yes,self,longrangeattacked,,,,,,,,
+30406,Hera's True Form@SA_LANDPROTECTOR,attack,288,1,10000,1000,20000,no,self,myhpinrate,60,99,,,,,,
+30406,Hera's True Form@NPC_EVILLAND,attack,670,10,10000,1000,60000,no,target,myhpltmaxrate,55,,,,,,,
+30406,Hera's True Form@NPC_DARKBLESSING,attack,203,1,500,800,5000,no,target,myhpltmaxrate,80,,,,,,,
+30406,Hera's True Form@NPC_SUMMONSLAVE,idle,196,2,10000,0,0,no,self,onspawn,0,30407,,,,,,
+30406,Hera's True Form@NPC_SUMMONSLAVE,idle,196,2,10000,0,30000,no,self,slavele,0,30407,,,,,,
+30406,Hera's True Form@NPC_SUMMONSLAVE,attack,196,2,10000,700,30000,no,self,slavele,0,30407,,,,,,
+30406,Hera's True Form@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30406,Hera's True Form@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,,
+30406,Hera's True Form@NPC_WIDESILENCE,chase,663,5,2000,1000,20000,no,self,myhpltmaxrate,80,,,,,,,
+30406,Hera's True Form@WZ_METEOR,attack,83,10,3000,1000,10000,no,target,always,0,,,,,,,
+30406,Hera's True Form@NPC_CRITICALSLASH,attack,170,1,1000,0,5000,yes,target,always,0,,,,,,,
+30406,Hera's True Form@PR_LEXAETERNA,attack,78,1,500,0,10000,yes,target,always,0,,,,,,29,
