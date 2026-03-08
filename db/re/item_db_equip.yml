@@ -160173,6 +160173,9 @@ Body:
     Locations:
       Costume_Head_Mid: true
     ArmorLevel: 1
+    Trade:
+      NoMail: true
+      NoAuction: true
   - Id: 31852
     AegisName: C_WitchManteau
     Name: Costume Witch's Cloak
@@ -178446,6 +178449,26 @@ Body:
       Costume_Head_Top: true
     ArmorLevel: 1
     View: 2717
+  - Id: 400952
+    AegisName: aegis_400952
+    Name: Costume Indian Feather Headband
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    ArmorLevel: 1
+    View: 809
+  - Id: 400953
+    AegisName: C_Summer_Sunglasses
+    Name: Costume Summer Sunglasses
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 2720
   - Id: 400956
     AegisName: C_Chestnut_Helmet
     Name: Costume Chestnut Mask
@@ -179579,6 +179602,30 @@ Body:
             }
          }
       }
+  - Id: 400993
+    AegisName: C_M_Plant_Hat_W
+    Name: Costume White Mechanical Plant Hat
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 2583
+  - Id: 400994
+    AegisName: C_Mech_Feath_Hairband_B
+    Name: Costume Blue Mechanical Feather
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 2659
   - Id: 401000
     AegisName: C_Liamette_Hair_Band
     Name: Costume Liamette Hair Band
@@ -180251,6 +180298,30 @@ Body:
       NoAuction: true
     ArmorLevel: 1
     View: 2805
+  - Id: 401246
+    AegisName: aegis_401246
+    Name: Costume Fafnir Helm
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    ArmorLevel: 1
+    View: 2149
+  - Id: 401247
+    AegisName: aegis_401247
+    Name: Costume Wolf Rayet
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    ArmorLevel: 1
+    View: 2487
+  - Id: 401248
+    AegisName: C_Apprentice_Witch_Hat 
+    Name: Costume Apprentice Witch Hat    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Head_Top: true
+    ArmorLevel: 1
+    View: 2814
   - Id: 410000
     AegisName: Resonate_Taego_J
     Name: Ancient Resonance
@@ -182619,6 +182690,11 @@ Body:
     Type: Armor
     Locations:
       Costume_Head_Mid: true
+    Trade:
+      NoSell: true
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
     ArmorLevel: 1
     View: 2363
   - Id: 410202
@@ -184683,6 +184759,14 @@ Body:
       Costume_Head_Mid: true
     ArmorLevel: 1
     View: 2730
+  - Id: 410470
+    AegisName: aegis_410470
+    Name: Costume Alarm Mask (Middle)
+    Type: Armor
+    Locations:
+      Costume_Head_Mid: true
+    ArmorLevel: 1
+    View: 170
   - Id: 410471
     AegisName: C_Gear_Monocle
     Name: Costume Gear Monocle
@@ -184763,6 +184847,14 @@ Body:
       Costume_Head_Mid: true
     ArmorLevel: 1
     View: 2795
+  - Id: 410582
+    AegisName: C_Nursing_Poring
+    Name: Costume Nursing Poring    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Head_Mid: true
+    ArmorLevel: 1
+    View: 2817
   - Id: 420000
     AegisName: Isabella_Carrot
     Name: Isabella Carrot
@@ -187776,6 +187868,9 @@ Body:
     Type: Armor
     Locations:
       Costume_Head_Low: true
+    Trade:
+      NoDrop: true
+      NoSell: true
     ArmorLevel: 1
     Script: |
       hateffect HAT_EF_C_ANCIENT_RUNE,true;
@@ -188645,6 +188740,43 @@ Body:
       NoGuildStorage: true
       NoMail: true
       NoAuction: true
+  - Id: 420545
+    AegisName: C_Vacation_Pope_Hair
+    Name: Costume Vacation Pope Hair
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 2718
+  - Id: 420546
+    AegisName: C_Miriam_Hair
+    Name: Costume Miriam Ponytail
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 2719
+  - Id: 420547
+    AegisName: C_Come_On_Soda
+    Name: Costume Blueberry Popsicle
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    Trade:
+      NoDrop: true
+      NoSell: true
+      NoMail: true
+      NoAuction: true
+    ArmorLevel: 1
+    View: 2721
   - Id: 420552
     AegisName: C_Divine_Sky_Invite
     Name: Costume Divine Invitation
@@ -188838,6 +188970,22 @@ Body:
       hateffect HAT_EF_C_CLB_GAT_DOC,true;
     UnEquipScript: |
       hateffect HAT_EF_C_CLB_GAT_DOC,false;
+  - Id: 420750
+    AegisName: C_Seyren_Hair
+    Name: Costume Seyren Hair    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 2815
+  - Id: 420751
+    AegisName: C_Magaleta_Hair
+    Name: Costume Magaleta Hair    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 2816
   - Id: 430001
     AegisName: C_Helm_Of_Ra
     Name: Costume Hat of the Sun God
@@ -215675,6 +215823,11 @@ Body:
     Slots: 1
     Locations:
       Garment: true
+    Trade:
+      NoDrop: true
+      NoSell: true
+      NoMail: true
+      NoAuction: true
     ArmorLevel: 1
     EquipLevelMin: 100
     Refineable: true
@@ -215689,18 +215842,7 @@ Body:
          bonus2 bAddItemHealRate,11523,100;
          bonus2 bAddItemHealRate,11524,100;
          if (.@r>=9) {
-             bonus2 bAddMonsterDropItem,11520,200;
-             bonus2 bAddMonsterDropItem,11521,200;
-             bonus2 bAddMonsterDropItem,11522,200;
-             bonus2 bAddMonsterDropItem,11523,200;
-             bonus2 bAddMonsterDropItem,11524,200;
-             bonus2 bAddMonsterDropItem,11525,200;
-             bonus2 bAddMonsterDropItem,11526,200;
-             bonus2 bAddMonsterDropItem,12574,200;
-             bonus2 bAddMonsterDropItem,12812,200;
-             bonus2 bAddMonsterDropItem,12813,200;
-             bonus2 bAddMonsterDropItem,12814,200;
-             bonus2 bAddMonsterDropItem,12815,200;
+             bonus2 bAddMonsterDropItemGroup,IG_SPENDID_CAPE_BR,200;
              if (.@r>=11) {
                   bonus bNoCastCancel;
              }
@@ -216817,7 +216959,7 @@ Body:
     ArmorLevel: 1
     View: 228
   - Id: 480462
-    AegisName: aegis_480462
+    AegisName: C_Hanwha_Pool_Ring
     Name: Costume Hanwha X RO Poring Tube
     Type: Armor
     Locations:
@@ -218081,6 +218223,18 @@ Body:
       Costume_Garment: true
     ArmorLevel: 1
     View: 278
+  - Id: 480619
+    AegisName: C_Melon_Cream_Soda
+    Name: Costume Melon Cream Soda
+    Type: Armor
+    Locations:
+      Costume_Garment: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 279
   - Id: 480627
     AegisName: C_2025RosFesta
     Name: Costume ROS 2025 Champion Coat
@@ -218101,6 +218255,18 @@ Body:
       Costume_Garment: true
     ArmorLevel: 1
     View: 283
+  - Id: 480630
+    AegisName: C_Mechanical_Fairy_Wing
+    Name: Costume Mechanical Fairy Wings
+    Type: Armor
+    Locations:
+      Costume_Garment: true
+    Trade:
+      NoMail: true
+      NoAuction: true
+      NoGuildStorage: true
+    ArmorLevel: 1
+    View: 284
   - Id: 480631
     AegisName: C_Detective_Mag_Glass
     Name: Costume Detective's Magnifying Glass
@@ -218513,6 +218679,22 @@ Body:
       Costume_Garment: true
     ArmorLevel: 1
     View: 298
+  - Id: 480747
+    AegisName: C_Knights_Sword_Shield
+    Name: Costume Knights Sword Shield    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Garment: true
+    ArmorLevel: 1
+    View: 300
+  - Id: 480748
+    AegisName: C_Doram_Paw_Hammer
+    Name: Costume Doram Paw Hammer    # !todo check english name
+    Type: Armor
+    Locations:
+      Costume_Garment: true
+    ArmorLevel: 1
+    View: 301
   - Id: 490004
     AegisName: Atker_Ring
     Name: Attacker Booster Ring
