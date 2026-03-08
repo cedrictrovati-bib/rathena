@@ -9321,6 +9321,10 @@ static const struct _battle_data {
 	{ "trade_count_stackable",              &battle_config.trade_count_stackable,           1,      0,      1,              },
 	{ "enable_bonus_map_drops",             &battle_config.enable_bonus_map_drops,          1,      0,      1,              },
 	{ "hide_cloaked_units",                 &battle_config.hide_cloaked_units,              0,      0,      BL_ALL,         },
+	{ "feature.goldpc_active",              &battle_config.feature_goldpc_active,           1,      0,      1, },
+	{ "feature.goldpc_time",                &battle_config.feature_goldpc_time,          3600,      0,   3600, },
+	{ "feature.goldpc_max_points",          &battle_config.feature_goldpc_max_points,     300,      0,    300, },
+	{ "feature.goldpc_vip",                 &battle_config.feature_goldpc_vip,              1,      0,      1, },
 
 #include <custom/battle_config_init.inc>
 };
