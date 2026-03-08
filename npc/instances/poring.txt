@@ -1,0 +1,85 @@
+//---------------------------------------------------------
+// Instance: King Poring Gluttony
+// Version "Lioran Context Protection"
+//---------------------------------------------------------
+
+pay_fild04,34,177,5	script	Terrified Poring#kpg_ent	1002,{
+	set .@party_id, getcharid(1);
+	set .@md_name$, "King Poring Gluttony";
+
+	mes "[Terrified Poring]";
+	mes "Pli... Pli... help us!";
+	next;
+
+	if (instance_id() == 0) {
+		if (checkquest(40402, PLAYTIME) == 0 || checkquest(40402, PLAYTIME) == 1) {
+			mes "The King is resting. Come back later.";
+			close;
+		}
+	}
+
+	if (instance_id()) set .@text$, "Rejoin Instance";
+	else set .@text$, "Create Instance";
+
+	switch(select("Stop the Gluttony ("+.@text$+"):Leave")) {
+		case 1:
+			if (instance_id() == 0) {
+				if (.@party_id <= 0) { mes "You must be in a party."; close; }
+				if (getcharid(0) != getpartyleader(.@party_id, 2)) { mes "Only the leader can start."; close; }
+				if (instance_create(.@md_name$) < 0) { mes "Failed to create."; close; }
+				if (checkquest(40401) == -1) setquest 40401;
+				if (checkquest(40402) == -1) setquest 40402;
+			}
+			instance_enter(.@md_name$);
+			end;
+		case 2: close;
+	}
+}
+
+lasa_fild01,0,0,0	script	#kpg_manager_inst	-1,{
+OnInstanceInit:
+	set 'main_event, 1;
+	enablenpc instance_npcname("Scared Poring#kpg_i");
+	disablenpc instance_npcname("King Poring Gluttony#kpg_i");
+	end;
+}
+
+lasa_fild01,29,283,3	script	Scared Poring#kpg_i	1002,{
+	mes "[Scared Poring]";
+	mes "Pli! Watch out! Here they come!";
+	close2;
+	monster instance_mapname("lasa_fild01"), 35, 285, "Hungry Poporing", 1031, 10;
+	set 'main_event, 2;
+	enablenpc instance_npcname("King Poring Gluttony#kpg_i");
+	disablenpc instance_npcname("Scared Poring#kpg_i");
+	end;
+}
+
+lasa_fild01,165,338,5	script	King Poring Gluttony#kpg_i	3810,{
+	mes "[^FF0000King Poring Gluttony^000000]";
+	mes "I AM STILL... SO HUNGRY!";
+	next;
+	close2;
+	
+	set .@lude_spawn$, instance_npcname("King Poring Gluttony#kpg_i")+"::OnKingDead";
+	monster instance_mapname("lasa_fild01"), 165, 338, "King Poring Gluttony", 3810, 1,.@lude_spawn$;
+	
+	disablenpc instance_npcname("King Poring Gluttony#kpg_i");
+	end;
+
+OnKingDead:
+	warp "pay_fild04",34,177;
+	mapannounce instance_mapname("lasa_fild01"), "The King's gluttony has finally come to an end!", bc_map, 0x00FF00;	
+	
+	// On utilise la variable sauvegardée pour écrire les data
+	set 'main_event, 3;
+	
+	// Sécurité pour erasequest
+	if (checkquest(40401) != -1) erasequest 40401;
+	
+	sleep 5000;
+	
+	// Destruction via l'ID sauvegardé
+	warp "prontera",109,58;
+	end;
+}

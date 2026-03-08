@@ -52,3 +52,10 @@ Body:
     AdditionalMaps:
       2@antgm: true
       3@antgm: true
+  - Id: 6
+    Name: King Poring Gluttony
+    TimeLimit: 3600
+    Enter:
+      Map: lasa_fild01
+      X: 29
+      Y: 283

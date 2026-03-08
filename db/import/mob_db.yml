@@ -764,14 +764,8 @@ Body:
     MvpDrops:
       - Item: Seed_Of_Yggdrasil
         Rate: 3000
-      - Item: PoringTownOnion
-        Rate: 1000
-      - Item: PoringTownCarrot
-        Rate: 10
     Drops:
       - Item: Large_Jellopy
-        Rate: 3000
-      - Item: Jejellopy
         Rate: 3000
       - Item: Blue_Herb
         Rate: 3000

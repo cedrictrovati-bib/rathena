@@ -56,3 +56,9 @@ Body:
   - Id: 40401
     Title: Alice's Nightmare Time Limit
     Time: +3h
+  - Id: 40402
+    Title: King Poring Gluttony Delay
+    Time: +24h
+  - Id: 40401
+    Title: King Poring Gluttony Time Limit
+    Time: +3h
