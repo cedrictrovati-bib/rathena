@@ -9361,7 +9361,7 @@ struct view_data* status_get_viewdata(block_list *bl)
 		case BL_HOM: return reinterpret_cast<homun_data*>(bl)->vd;
 		case BL_MER: return reinterpret_cast<s_mercenary_data*>(bl)->vd;
 		case BL_ELEM: return reinterpret_cast<s_elemental_data*>(bl)->vd;
-		case BL_STALL: return reinterpret_cast<TBL_STALL*>(bl)->vd;
+		case BL_STALL: return &((TBL_STALL*)bl)->vd;
 	}
 	return nullptr;
 }
@@ -9555,7 +9555,7 @@ status_change* status_get_sc(block_list* bl){
 		case BL_HOM: return &reinterpret_cast<homun_data*>(bl)->sc;
 		case BL_MER: return &reinterpret_cast<s_mercenary_data*>(bl)->sc;
 		case BL_ELEM: return &reinterpret_cast<s_elemental_data*>(bl)->sc;
-		case BL_STALL: return &reinterpret_cast<TBL_STALL*>(bl)->sc;
+		case BL_STALL: return &((TBL_STALL*)bl)->sc;
 	}
 	return nullptr;
 }

@@ -176,7 +176,9 @@ int8 stall_vending_setup(map_session_data* sd, const char* message, const int16 
 		return true;
 	}
 
-	struct s_stall_data* st = (struct s_stall_data*)aCalloc(1, sizeof(struct s_stall_data));
+	void* mem = aCalloc(1, sizeof(s_stall_data));
+	auto* st = ::new (mem) s_stall_data{};
+
 	st->vended_id = sd->status.char_id; // Got it now to send items back in case something wrong
 
 	if (save_settings & CHARSAVE_VENDING) // Avoid invalid data from saving
@@ -239,18 +241,19 @@ int8 stall_vending_setup(map_session_data* sd, const char* message, const int16 
 	st->x = xPos;
 	st->y = yPos;
 
-	st->vd.class_ = sd->vd.class_;
-	st->vd.weapon = sd->vd.weapon;
-	st->vd.shield = sd->vd.shield;
-	st->vd.head_top = sd->vd.head_top;
-	st->vd.head_mid = sd->vd.head_mid;
-	st->vd.head_bottom = sd->vd.head_bottom;
-	st->vd.hair_style = sd->vd.hair_style;
-	st->vd.hair_color = sd->vd.hair_color;
-	st->vd.cloth_color = sd->vd.cloth_color;
-	st->vd.body_style = sd->vd.body_style;
-	st->vd.robe = sd->vd.robe;
+	st->vd.look[LOOK_BASE] = sd->vd.look[LOOK_BASE];
+	st->vd.look[LOOK_WEAPON] = sd->vd.look[LOOK_WEAPON];
+	st->vd.look[LOOK_SHIELD] = sd->vd.look[LOOK_SHIELD];
+	st->vd.look[LOOK_HEAD_TOP] = sd->vd.look[LOOK_HEAD_TOP];
+	st->vd.look[LOOK_HEAD_MID] = sd->vd.look[LOOK_HEAD_MID];
+	st->vd.look[LOOK_HEAD_BOTTOM] = sd->vd.look[LOOK_HEAD_BOTTOM];
+	st->vd.look[LOOK_HAIR] = sd->vd.look[LOOK_HAIR];
+	st->vd.look[LOOK_HAIR_COLOR] = sd->vd.look[LOOK_HAIR_COLOR];
+	st->vd.look[LOOK_CLOTHES_COLOR] = sd->vd.look[LOOK_CLOTHES_COLOR];
+	st->vd.look[LOOK_BODY2] = sd->vd.look[LOOK_BODY2];
+	st->vd.look[LOOK_ROBE] = sd->vd.look[LOOK_ROBE];
 	st->vd.sex = sd->vd.sex;
+	st->class_ = sd->status.class_;
 
 	Sql_EscapeString(mmysql_handle, message_sql, st->message);
 
@@ -258,9 +261,13 @@ int8 stall_vending_setup(map_session_data* sd, const char* message, const int16 
 		"`title`, `hair`, `hair_color`, `body`, `weapon`, `shield`, `head_top`, `head_mid`, `head_bottom`,"
 		"`clothes_color`, `name`, `expire_time`, `robe`) "
 		"VALUES( %d, %d, %d, %d, '%c', %d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', %u, %d  );",
-		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->vd.class_, st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
-		message_sql, st->vd.hair_style, st->vd.hair_color, st->vd.body_style, st->vd.weapon, st->vd.shield, st->vd.head_top, st->vd.head_mid, st->vd.head_bottom,
-		st->vd.cloth_color, st->name, st->expire_time, st->vd.robe) != SQL_SUCCESS) {
+#if PACKETVER_MAIN_NUM >= 20231220
+		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->class_, st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
+#else
+		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->vd.look[LOOK_BASE], st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
+#endif
+		message_sql, st->vd.look[LOOK_HAIR], st->vd.look[LOOK_HAIR_COLOR], st->vd.look[LOOK_BODY2], st->vd.look[LOOK_WEAPON], st->vd.look[LOOK_SHIELD], st->vd.look[LOOK_HEAD_TOP], st->vd.look[LOOK_HEAD_MID], st->vd.look[LOOK_HEAD_BOTTOM],
+		st->vd.look[LOOK_CLOTHES_COLOR], st->name, st->expire_time, st->vd.look[LOOK_ROBE]) != SQL_SUCCESS) {
 		Sql_ShowDebug(mmysql_handle);
 		clif_displaymessage(sd->fd, "Something went wrong, maybe you used symbols in shop name.");
 		clif_skill_fail(*sd, ALL_ASSISTANT_VENDING, USESKILL_FAIL_LEVEL, 0); // custom reply packet
@@ -304,7 +311,6 @@ int8 stall_vending_setup(map_session_data* sd, const char* message, const int16 
 		aFree(st);
 		return 5;
 	}
-	StringBuf_Destroy(&buf);
 
 	st->timer = add_timer(gettick() + (st->expire_time - time(NULL)) * 1000,
 		stall_timeout, st->id, 0);
@@ -315,7 +321,6 @@ int8 stall_vending_setup(map_session_data* sd, const char* message, const int16 
 
 	if (map_addblock(st))
 		return -1;
-	status_change_init(st);
 	map_addiddb(st);
 	stall_db.push_back(st);
 
@@ -389,7 +394,8 @@ int8 stall_buying_setup(map_session_data* sd, const char* message, const int16 x
 		return 1;
 	}
 
-	struct s_stall_data* st = (struct s_stall_data*)aCalloc(1, sizeof(struct s_stall_data));
+	void* mem = aCalloc(1, sizeof(s_stall_data));
+	auto* st = ::new (mem) s_stall_data{};
 	st->vended_id = sd->status.char_id; // Got it now to send items back in case something wrong
 
 	if (save_settings & CHARSAVE_VENDING) // Avoid invalid data from saving
@@ -484,18 +490,19 @@ int8 stall_buying_setup(map_session_data* sd, const char* message, const int16 x
 	st->x = xPos;
 	st->y = yPos;
 
-	st->vd.class_ = sd->vd.class_;
-	st->vd.weapon = sd->vd.weapon;
-	st->vd.shield = sd->vd.shield;
-	st->vd.head_top = sd->vd.head_top;
-	st->vd.head_mid = sd->vd.head_mid;
-	st->vd.head_bottom = sd->vd.head_bottom;
-	st->vd.hair_style = sd->vd.hair_style;
-	st->vd.hair_color = sd->vd.hair_color;
-	st->vd.cloth_color = sd->vd.cloth_color;
-	st->vd.body_style = sd->vd.body_style;
-	st->vd.robe = sd->vd.robe;
+	st->vd.look[LOOK_BASE] = sd->vd.look[LOOK_BASE];
+	st->vd.look[LOOK_WEAPON] = sd->vd.look[LOOK_WEAPON];
+	st->vd.look[LOOK_SHIELD] = sd->vd.look[LOOK_SHIELD];
+	st->vd.look[LOOK_HEAD_TOP] = sd->vd.look[LOOK_HEAD_TOP];
+	st->vd.look[LOOK_HEAD_MID] = sd->vd.look[LOOK_HEAD_MID];
+	st->vd.look[LOOK_HEAD_BOTTOM] = sd->vd.look[LOOK_HEAD_BOTTOM];
+	st->vd.look[LOOK_HAIR] = sd->vd.look[LOOK_HAIR];
+	st->vd.look[LOOK_HAIR_COLOR] = sd->vd.look[LOOK_HAIR_COLOR];
+	st->vd.look[LOOK_CLOTHES_COLOR] = sd->vd.look[LOOK_CLOTHES_COLOR];
+	st->vd.look[LOOK_BODY2] = sd->vd.look[LOOK_BODY2];
+	st->vd.look[LOOK_ROBE] = sd->vd.look[LOOK_ROBE];
 	st->vd.sex = sd->vd.sex;
+	st->class_ = sd->status.class_;
 
 	Sql_EscapeString(mmysql_handle, message_sql, st->message);
 
@@ -503,9 +510,13 @@ int8 stall_buying_setup(map_session_data* sd, const char* message, const int16 x
 		"`title`, `hair`, `hair_color`, `body`, `weapon`, `shield`, `head_top`, `head_mid`, `head_bottom`,"
 		"`clothes_color`, `name`, `expire_time`, `robe`) "
 		"VALUES( %d, %d, %d, %d, '%c', %d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', %u, %d );",
-		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->vd.class_, st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
-		message_sql, st->vd.hair_style, st->vd.hair_color, st->vd.body_style, st->vd.weapon, st->vd.shield, st->vd.head_top, st->vd.head_mid, st->vd.head_bottom,
-		st->vd.cloth_color, st->name, st->expire_time, st->vd.robe) != SQL_SUCCESS) {
+#if PACKETVER_MAIN_NUM >= 20231220
+		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->class_, st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
+#else
+		stalls_table, st->vender_id, st->vended_id, st->shop_type, st->vd.look[LOOK_BASE], st->vd.sex == SEX_FEMALE ? 'F' : 'M', st->m, st->x, st->y,
+#endif
+		message_sql, st->vd.look[LOOK_HAIR], st->vd.look[LOOK_HAIR_COLOR], st->vd.look[LOOK_BODY2], st->vd.look[LOOK_WEAPON], st->vd.look[LOOK_SHIELD], st->vd.look[LOOK_HEAD_TOP], st->vd.look[LOOK_HEAD_MID], st->vd.look[LOOK_HEAD_BOTTOM],
+		st->vd.look[LOOK_CLOTHES_COLOR], st->name, st->expire_time, st->vd.look[LOOK_ROBE]) != SQL_SUCCESS) {
 		Sql_ShowDebug(mmysql_handle);
 	}
 
@@ -519,7 +530,6 @@ int8 stall_buying_setup(map_session_data* sd, const char* message, const int16 x
 	}
 	if (SQL_ERROR == Sql_QueryStr(mmysql_handle, StringBuf_Value(&buf)))
 		Sql_ShowDebug(mmysql_handle);
-	StringBuf_Destroy(&buf);
 
 	st->timer = add_timer(gettick() + (st->expire_time - time(NULL)) * 1000,
 		stall_timeout, st->id, 0);
@@ -530,7 +540,6 @@ int8 stall_buying_setup(map_session_data* sd, const char* message, const int16 x
 
 	if (map_addblock(st))
 		return -1;
-	status_change_init(st);
 	map_addiddb(st);
 	stall_db.push_back(st);
 
@@ -612,6 +621,7 @@ void stall_vending_purchasereq(map_session_data* sd, int aid, int uid, const uin
 	int i, w;
 	double z;
 	struct s_stall_data* st = map_id2st(uid);
+	std::string itemlstr;
 
 	nullpo_retv(sd);
 	if (st == NULL)
@@ -719,7 +729,8 @@ void stall_vending_purchasereq(map_session_data* sd, int aid, int uid, const uin
 		msg_buyer.item[i].amount = amount;
 
 		std::shared_ptr<item_data> id = item_db.find(st->items_inventory[idx].nameid);
-		stream << "\r\n<MSG>2933</MSG>" << id->name.c_str() << "\r\n";
+		itemlstr = item_db.create_item_link(st->items_inventory[idx]);
+		stream << "\r\n<MSG>2933</MSG>" << itemlstr.c_str() << "\r\n";
 
 		stream << "<MSG>2934</MSG>" << price << "z \r\n";
 		stream << "<MSG>2936</MSG>" << total << "z \r\n";
@@ -778,6 +789,7 @@ void stall_buying_purchasereq(map_session_data* sd, int aid, int uid, const stru
 {
 	int zeny = 0;
 	struct s_stall_data* st = map_id2st(uid);
+	std::string itemlstr;
 
 	nullpo_retv(sd);
 	if (st == NULL)
@@ -906,12 +918,13 @@ void stall_buying_purchasereq(map_session_data* sd, int aid, int uid, const stru
 		// move item
 		memcpy(&msg_buyer.item[i], &sd->inventory.u.items_inventory[index], sizeof(struct item));
 		msg_buyer.item[i].amount = item->amount;
+		itemlstr = item_db.create_item_link(sd->inventory.u.items_inventory[index]);
 
 		pc_delitem(sd, index, item->amount, 0, 0, LOG_TYPE_BUYING_STORE);
 		st->amount[listidx] -= item->amount;
 
 		std::shared_ptr<item_data> id = item_db.find(item->itemId);
-		stream << "\r\n<MSG>2933</MSG>" << id->name.c_str() << "\r\n";
+		stream << "\r\n<MSG>2933</MSG>" << itemlstr.c_str() << "\r\n";
 
 		stream << "<MSG>2935</MSG>" << st->price[listidx] << "z \r\n";
 		stream << "<MSG>2934</MSG>" << item->amount << "\r\n";
@@ -1010,6 +1023,7 @@ void stall_buying_save(struct s_stall_data* st) {
 
 void stall_vending_getbackitems(struct s_stall_data* st) {
 	struct mail_message msg_vendor = {};
+	std::string itemlstr;
 
 	msg_vendor.dest_id = st->vended_id;
 	safestrncpy(msg_vendor.send_name, "Street vendor", NAME_LENGTH);
@@ -1034,7 +1048,8 @@ void stall_vending_getbackitems(struct s_stall_data* st) {
 			msg_vendor.item[mail_index].amount = st->items_inventory[i].amount;
 
 			std::shared_ptr<item_data> id = item_db.find(st->items_inventory[i].nameid);
-			stream << "\r\nReturn of item : " << id->name.c_str() << "\r\n";
+			itemlstr = item_db.create_item_link(st->items_inventory[i]);
+			stream << "\r\nReturn of item : " << itemlstr.c_str() << "\r\n";
 			stream << "Amount : " << st->items_inventory[i].amount << "\r\n";
 			mail_index++;
 		}
@@ -1292,29 +1307,34 @@ TIMER_FUNC(stall_init) {
 		size_t len;
 		char* data;
 		st = NULL;
-		st = (struct s_stall_data*)aCalloc(1, sizeof(struct s_stall_data));
+		void* mem = aCalloc(1, sizeof(s_stall_data));
+		st = ::new (mem) s_stall_data{};
 		Sql_GetData(mmysql_handle, 0, &data, NULL); st->vender_id = atoi(data);
 		Sql_GetData(mmysql_handle, 1, &data, NULL); st->vended_id = atoi(data);
 		st->id = st->vender_id;
 		Sql_GetData(mmysql_handle, 2, &data, NULL); st->shop_type = atoi(data);
-		Sql_GetData(mmysql_handle, 3, &data, NULL); st->vd.class_ = atoi(data);
+#if PACKETVER_MAIN_NUM >= 20231220
+		Sql_GetData(mmysql_handle, 3, &data, NULL); st->class_ = atoi(data);
+#else
+		Sql_GetData(mmysql_handle, 3, &data, NULL); st->vd.look[LOOK_BASE] = atoi(data);
+#endif
 		Sql_GetData(mmysql_handle, 4, &data, NULL); st->vd.sex = (data[0] == 'F') ? SEX_FEMALE : SEX_MALE;
 		Sql_GetData(mmysql_handle, 5, &data, NULL); st->m = atoi(data);
 		Sql_GetData(mmysql_handle, 6, &data, NULL); st->x = atoi(data);
 		Sql_GetData(mmysql_handle, 7, &data, NULL); st->y = atoi(data);
 		Sql_GetData(mmysql_handle, 8, &data, &len); safestrncpy(st->message, data, zmin(len + 1, MESSAGE_SIZE));
-		Sql_GetData(mmysql_handle, 9, &data, NULL); st->vd.hair_style = atoi(data);
-		Sql_GetData(mmysql_handle, 10, &data, NULL); st->vd.hair_color = atoi(data);
-		Sql_GetData(mmysql_handle, 11, &data, NULL); st->vd.body_style = atoi(data);
-		Sql_GetData(mmysql_handle, 12, &data, NULL); st->vd.weapon = atoi(data);
-		Sql_GetData(mmysql_handle, 13, &data, NULL); st->vd.shield = atoi(data);
-		Sql_GetData(mmysql_handle, 14, &data, NULL); st->vd.head_top = atoi(data);
-		Sql_GetData(mmysql_handle, 15, &data, NULL); st->vd.head_mid = atoi(data);
-		Sql_GetData(mmysql_handle, 16, &data, NULL); st->vd.head_bottom = atoi(data);
-		Sql_GetData(mmysql_handle, 17, &data, NULL); st->vd.cloth_color = atoi(data);
+		Sql_GetData(mmysql_handle, 9, &data, NULL); st->vd.look[LOOK_HAIR] = atoi(data);
+		Sql_GetData(mmysql_handle, 10, &data, NULL); st->vd.look[LOOK_HAIR_COLOR] = atoi(data);
+		Sql_GetData(mmysql_handle, 11, &data, NULL); st->vd.look[LOOK_BODY2] = atoi(data);
+		Sql_GetData(mmysql_handle, 12, &data, NULL); st->vd.look[LOOK_WEAPON] = atoi(data);
+		Sql_GetData(mmysql_handle, 13, &data, NULL); st->vd.look[LOOK_SHIELD] = atoi(data);
+		Sql_GetData(mmysql_handle, 14, &data, NULL); st->vd.look[LOOK_HEAD_TOP] = atoi(data);
+		Sql_GetData(mmysql_handle, 15, &data, NULL); st->vd.look[LOOK_HEAD_MID] = atoi(data);
+		Sql_GetData(mmysql_handle, 16, &data, NULL); st->vd.look[LOOK_HEAD_BOTTOM] = atoi(data);
+		Sql_GetData(mmysql_handle, 17, &data, NULL); st->vd.look[LOOK_CLOTHES_COLOR] = atoi(data);
 		Sql_GetData(mmysql_handle, 18, &data, &len); safestrncpy(st->name, data, zmin(len + 1, MESSAGE_SIZE));
 		Sql_GetData(mmysql_handle, 19, &data, NULL); st->expire_time = strtoul(data, nullptr, 10);
-		Sql_GetData(mmysql_handle, 20, &data, NULL); st->vd.robe = atoi(data);
+		Sql_GetData(mmysql_handle, 20, &data, NULL); st->vd.look[LOOK_ROBE] = atoi(data);
 		st->type = BL_STALL;
 		stall_db.push_back(st);
 	}
@@ -1420,7 +1440,7 @@ TIMER_FUNC(stall_init) {
 
 		if (map_addblock(itStalls))
 			continue;
-		status_change_init(itStalls);
+
 		map_addiddb(itStalls);
 	}
 

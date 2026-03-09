@@ -47,6 +47,8 @@ struct s_stall_data : public block_list {
 	char name[NAME_LENGTH];
 
 	unsigned int expire_time;
+
+	int16 class_; ///< Player's JobID
 };
 
 extern std::vector<s_stall_data*> stall_db;

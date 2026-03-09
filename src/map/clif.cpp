@@ -14226,7 +14226,7 @@ void clif_parse_VendingListReq(int32 fd, map_session_data* sd)
 /// Shop item(s) purchase request.
 /// 0134 <packet len>.W <account id>.L { <amount>.W <index>.W }* (CZ_PC_PURCHASE_ITEMLIST_FROMMC)
 void clif_parse_PurchaseReq(int32 fd, map_session_data* sd){
-	const PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC* p = reinterpret_cast<PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC*>( RFIFOP( fd, 0 ) );
+	const PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC2* p = reinterpret_cast<PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC2*>( RFIFOP( fd, 0 ) );
 
 	if (p->UniqueID >= START_STALL_NUM)
 		stall_vending_purchasereq(sd, p->AID, p->UniqueID, (uint8*)p->list, (p->packetLength - sizeof(*p)) / sizeof(p->list[0]));
@@ -23915,17 +23915,17 @@ void clif_stall_showunit(map_session_data* sd, struct s_stall_data* st) {
 	p.xPos = st->x;
 	p.yPos = st->y;
 	p.sex = st->vd.sex;
-	p.head = st->vd.hair_style;
-	p.weapon = st->vd.weapon;
-	p.shield = st->vd.shield;
-	p.MidAccessory = st->vd.head_mid;
-	p.TopAccessory = st->vd.head_top;
-	p.BottomAccessory = st->vd.head_bottom;
-	p.headpalette = st->vd.hair_color;
-	p.bodypalette = st->vd.cloth_color;
-	p.BackAccessory = st->vd.robe;
+	p.head = sd->status.hair;
+	p.weapon = sd->status.weapon;
+	p.shield = sd->status.shield;
+	p.MidAccessory = sd->status.head_mid;
+	p.TopAccessory = sd->status.head_top;
+	p.BottomAccessory = sd->status.head_bottom;
+	p.headpalette = sd->status.hair_color;
+	p.bodypalette = sd->status.clothes_color;
+	p.BackAccessory = sd->status.robe;
 	safestrncpy(p.name, st->message, NAME_LENGTH);
-	p.unknow = st->vd.class_;
+	p.unknow = sd->status.class_;
 
 	clif_send(&p, sizeof(p), sd, AREA);
 #endif
