@@ -184855,6 +184855,81 @@ Body:
       Costume_Head_Mid: true
     ArmorLevel: 1
     View: 2817
+  - Id: 410587
+    AegisName: aegis_410587
+    Name: Mermaid Headphones (Global Cooldown)    # !todo check english name
+    Type: Armor
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bDelayrate,-8;
+      bonus bBaseAtk,20;
+      bonus bMatk,20;
+  - Id: 410588
+    AegisName: aegis_410588
+    Name: Mermaid Headphones (Variable Casting)    # !todo check english name
+    Type: Armor
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bVariableCastrate,-8;
+      bonus bBaseAtk,20;
+      bonus bMatk,20;
+  - Id: 410589
+    AegisName: aegis_410589
+    Name: Mermaid Headphones (MAXHP)    # !todo check english name
+    Type: Armor
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bMaxHPrate,8;
+      bonus bBaseAtk,20;
+      bonus bMatk,20;
+  - Id: 410590
+    AegisName: 26_3_MidHat1_
+    Name: Mermaid Headphones (Global Cooldown)    # !todo check english name
+    Type: Armor
+    Slots: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bDelayrate,-4;
+      bonus bBaseAtk,10;
+      bonus bMatk,10;
+  - Id: 410591
+    AegisName: 26_3_MidHat2_
+    Name: Mermaid Headphones (Variable Casting)    # !todo check english name
+    Type: Armor
+    Slots: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bVariableCastrate,-4;
+      bonus bBaseAtk,10;
+      bonus bMatk,10;
+  - Id: 410592
+    AegisName: 26_3_MidHat3_
+    Name: Mermaid Headphones (MAXHP)    # !todo check english name
+    Type: Armor
+    Slots: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 1254
+    Script: |
+      bonus bMaxHPrate,4;
+      bonus bBaseAtk,10;
+      bonus bMatk,10;
   - Id: 420000
     AegisName: Isabella_Carrot
     Name: Isabella Carrot
@@ -225650,7 +225725,7 @@ Body:
       bonus bDelayrate,-5;
       bonus bUseSPrate,5;
   - Id: 490475
-    AegisName: aegis_490475
+    AegisName: Chemical_Glove_ROC
     Name: Chemical Glove
     Type: Armor
     Weight: 100
@@ -225672,15 +225747,11 @@ Body:
       bonus bBaseAtk,5*.@a;
       bonus bMaxHPrate,2*.@a;
       bonus2 bSkillUseSP,"CR_ACIDDEMONSTRATION",.@a;
-      bonus2 bAddItemHealRate,501,100;
-      bonus2 bAddItemHealRate,502,100;
-      bonus2 bAddItemHealRate,503,100;
-      bonus2 bAddItemHealRate,504,100;
-      bonus2 bAddItemHealRate,547,100;
+      bonus2 bAddItemGroupHealRate,IG_CHEMICAL_GLOVE_ROC,100;
       bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",20*(BaseLevel/20);
       bonus2 bSkillAtk,"AM_ACIDTERROR",30*(BaseLevel/20);
   - Id: 490476
-    AegisName: aegis_490476
+    AegisName: Comp_Chemical_Glove_ROC
     Name: "[Not For Sale] Chemical Glove"
     Type: Armor
     Weight: 100
@@ -225709,11 +225780,7 @@ Body:
       bonus bBaseAtk,5*.@a;
       bonus bMaxHPrate,2*.@a;
       bonus2 bSkillUseSP,"CR_ACIDDEMONSTRATION",.@a;
-      bonus2 bAddItemHealRate,501,100;
-      bonus2 bAddItemHealRate,502,100;
-      bonus2 bAddItemHealRate,503,100;
-      bonus2 bAddItemHealRate,504,100;
-      bonus2 bAddItemHealRate,547,100;
+      bonus2 bAddItemGroupHealRate,IG_CHEMICAL_GLOVE_ROC,100;
       bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",20*(BaseLevel/20);
       bonus2 bSkillAtk,"AM_ACIDTERROR",30*(BaseLevel/20);
   - Id: 490479
