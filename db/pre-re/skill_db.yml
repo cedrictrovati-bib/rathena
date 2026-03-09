@@ -10585,7 +10585,9 @@ Body:
     Range: 9
     Hit: Multi_Hit
     HitCount: -9
-    Element: Weapon
+    Element: Weapon    
+    Flags:
+      AllowWhenPerforming: true
     CastTime:
       - Level: 1
         Time: 2000
