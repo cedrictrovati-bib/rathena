@@ -35,6 +35,7 @@
 #include "pc_groups.hpp"
 #include "pet.hpp"
 #include "script.hpp"
+#include "stall.hpp"
 
 using namespace rathena;
 
@@ -9360,6 +9361,7 @@ struct view_data* status_get_viewdata(block_list *bl)
 		case BL_HOM: return reinterpret_cast<homun_data*>(bl)->vd;
 		case BL_MER: return reinterpret_cast<s_mercenary_data*>(bl)->vd;
 		case BL_ELEM: return reinterpret_cast<s_elemental_data*>(bl)->vd;
+		case BL_STALL: return reinterpret_cast<TBL_STALL*>(bl)->vd;
 	}
 	return nullptr;
 }
@@ -9541,7 +9543,7 @@ void status_set_viewdata(block_list *bl, int32 class_)
 
 /**
  * Get status change data of an object
- * @param bl: Object whose sc data to get [PC|MOB|HOM|MER|ELEM|NPC]
+ * @param bl: Object whose sc data to get [PC|MOB|HOM|MER|ELEM|NPC|STALL]
  * @return status change data structure bl->sc
  */
 status_change* status_get_sc(block_list* bl){
@@ -9553,6 +9555,7 @@ status_change* status_get_sc(block_list* bl){
 		case BL_HOM: return &reinterpret_cast<homun_data*>(bl)->sc;
 		case BL_MER: return &reinterpret_cast<s_mercenary_data*>(bl)->sc;
 		case BL_ELEM: return &reinterpret_cast<s_elemental_data*>(bl)->sc;
+		case BL_STALL: return &reinterpret_cast<TBL_STALL*>(bl)->sc;
 	}
 	return nullptr;
 }

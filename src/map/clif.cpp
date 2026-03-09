@@ -55,6 +55,7 @@
 #include "script.hpp"
 #include "skill.hpp"
 #include "status.hpp"
+#include "stall.hpp"
 #include "storage.hpp"
 #include "unit.hpp"
 #include "vending.hpp"
@@ -5060,7 +5061,8 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 	if( ud && ud->walktimer != INVALID_TIMER ){
 		clif_set_unit_walking( *bl, sd, *ud, SELF );
 	}else{
-		clif_set_unit_idle( bl, false, SELF, sd );
+		if (bl->type != BL_STALL)
+			clif_set_unit_idle(bl, false, SELF, sd);
 	}
 
 	clif_refresh_clothcolor( *bl, SELF, sd );
@@ -5084,6 +5086,16 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 	case BL_MER: // Devotion Effects
 		if( ((TBL_MER*)bl)->devotion_flag )
 			clif_devotion(bl, sd);
+		break;
+	case BL_STALL:
+		{
+			struct s_stall_data* st = map_id2st(bl->id);
+			clif_stall_showunit(sd, st);
+			if (st->shop_type == 0)
+				clif_showstallboard(sd, st->vender_id, st->message);
+			else
+				clif_buyingstall_entry(sd, st->vender_id, st->message);
+			}
 		break;
 	case BL_NPC:
 		{
@@ -5637,6 +5649,9 @@ int32 clif_outsight(block_list *bl,va_list ap)
 				clif_clearunit_single( bl->id, CLR_OUTSIGHT, *tsd );
 			}
 			break;
+		case BL_STALL:
+			clif_clearunit_single(bl->id, CLR_OUTSIGHT, *tsd);
+			break;
 		default:
 			if((vd=status_get_viewdata(bl)) && vd->look[LOOK_BASE] != JT_INVISIBLE)
 				clif_clearunit_single( bl->id, CLR_OUTSIGHT, *tsd );
@@ -5675,6 +5690,17 @@ int32 clif_insight(block_list *bl,va_list ap)
 			break;
 		case BL_SKILL:
 			skill_getareachar_skillunit_visibilty_single((TBL_SKILL*)bl, tsd);
+			break;
+		case BL_STALL:
+			{
+				map_session_data * ssd = map_id2sd(tbl->id);
+				struct s_stall_data* st = map_id2st(bl->id);
+				clif_stall_showunit(ssd, st);
+				if (st->shop_type == 0)
+					clif_showstallboard(ssd, st->vender_id, st->message);
+				else
+					clif_buyingstall_entry(ssd, st->vender_id, st->message);
+			}
 			break;
 		default:
 			clif_getareachar_unit(tsd,bl);
@@ -7573,6 +7599,21 @@ void clif_parse_BankWithdraw(int32 fd, map_session_data* sd) {
 		}
 	}
 #endif
+}
+
+/// Displays a stall board to target/area (ZC_STORE_ENTRY).
+/// 0131 <owner id>.L <message>.80B
+void clif_showstallboard(struct block_list* bl, uint32 stall_id, const char* message)
+{
+	nullpo_retv(bl);
+	
+	struct PACKET_ZC_STORE_ENTRY p = {};
+	
+	p.packetType = HEADER_ZC_STORE_ENTRY;
+	p.makerAID = stall_id;
+	safestrncpy(p.storeName, message, MESSAGE_SIZE);
+	
+	clif_send(&p, sizeof(p), bl, AREA);
 }
 
 /// Deletes an item from character's cart.
@@ -10083,6 +10124,7 @@ void clif_name( const block_list* src, const block_list* bl, send_target target 
 			break;
 		case BL_CHAT:
 		case BL_SKILL:
+		case BL_STALL:
 			// Newer clients request this, but do not need an answer
 			return;
 		default:
@@ -14173,7 +14215,11 @@ void clif_parse_VendingListReq(int32 fd, map_session_data* sd)
 	if( sd->npc_id ) {// using an NPC
 		return;
 	}
-	vending_vendinglistreq(sd,RFIFOL(fd,packet_db[RFIFOW(fd,0)].pos[0]));
+	int vender_id = RFIFOL(fd, packet_db[RFIFOW(fd, 0)].pos[0]);
+	if (vender_id >= START_STALL_NUM)
+		stall_vending_listreq(sd, vender_id);
+	else
+		vending_vendinglistreq(sd, vender_id);
 }
 
 
@@ -14182,12 +14228,27 @@ void clif_parse_VendingListReq(int32 fd, map_session_data* sd)
 void clif_parse_PurchaseReq(int32 fd, map_session_data* sd){
 	const PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC* p = reinterpret_cast<PACKET_CZ_PC_PURCHASE_ITEMLIST_FROMMC*>( RFIFOP( fd, 0 ) );
 
-	vending_purchasereq( sd, p->AID, sd->vended_id, (uint8*)p->list, ( p->packetLength - sizeof( *p ) ) / sizeof( p->list[0] ) );
+	if (p->UniqueID >= START_STALL_NUM)
+		stall_vending_purchasereq(sd, p->AID, p->UniqueID, (uint8*)p->list, (p->packetLength - sizeof(*p)) / sizeof(p->list[0]));
+	else
+		vending_purchasereq(sd, p->AID, p->UniqueID, (uint8*)p->list, (p->packetLength - sizeof(*p)) / sizeof(p->list[0]));
 
 	// whether it fails or not, the buy window is closed
 	sd->vended_id = 0;
 }
 
+/// Notifies clients in area of a buying stall (ZC_BUYING_STORE_ENTRY).
+/// 0814 <stall id>.L <store name>.80B
+void clif_buyingstall_entry(struct block_list* bl, uint32 stall_id, const char* message)
+{
+	struct PACKET_ZC_BUYING_STORE_ENTRY p = {};
+	
+	p.packetType = HEADER_ZC_BUYING_STORE_ENTRY;
+	p.makerAID = stall_id;
+	safestrncpy(p.storeName, message, MESSAGE_SIZE);
+	
+	clif_send(&p, sizeof(p), bl, AREA);
+}
 
 /// Shop item(s) purchase request.
 /// 0801 <packet len>.W <account id>.L <unique id>.L { <amount>.W <index>.W }* (CZ_PC_PURCHASE_ITEMLIST_FROMMC2)
@@ -19295,7 +19356,10 @@ static void clif_parse_ReqClickBuyingStore(int32 fd, map_session_data* sd)
 	// TODO: shuffle packet
 	account_id = RFIFOL(fd,packet_db[RFIFOW(fd,0)].pos[0]);
 
-	buyingstore_open(sd, account_id);
+	if (account_id >= START_STALL_NUM)
+		stall_buying_listreq(sd, account_id);
+	else
+		buyingstore_open(sd, account_id);
 }
 
 
@@ -19346,7 +19410,10 @@ static void clif_parse_ReqTradeBuyingStore( int32 fd, map_session_data* sd ){
 		return;
 	}
 
-	buyingstore_trade( sd, p->AID, p->storeId, p->items, packet_len / sizeof( p->items[0] ) );
+	if (p->storeId >= START_STALL_NUM)
+		stall_buying_purchasereq(sd, p->AID, p->storeId, p->items, packet_len / sizeof(p->items[0]));
+	else
+		buyingstore_trade(sd, p->AID, p->storeId, p->items, packet_len / sizeof(p->items[0]));
 }
 
 
@@ -23722,6 +23789,326 @@ void clif_parse_laphine_upgrade_close( int32 fd, map_session_data* sd ){
 	sd->state.laphine_upgrade = 0;
 #endif
 }
+
+/// Presents a list of items that can be sell.
+void clif_stall_vending_open(map_session_data* sd) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	// Check if a shop is already opened for this char
+	if (stall_isStallOpen(sd->status.char_id)) {
+		clif_stall_ui_close(sd, 100, STALLSTORE_OK);
+		clif_displaymessage(sd->fd, "You can't open 2 stalls at the same time on a char.");
+		return;
+	}
+
+	int len = MAX_INVENTORY * sizeof(struct STALL_VENDING_UI_OPEN_sub) + sizeof(struct PACKET_ZC_STALL_VENDING_UI_OPEN);
+
+	// Preallocate the maximum size
+	WFIFOHEAD(fd, len);
+
+	struct PACKET_ZC_STALL_VENDING_UI_OPEN* p = (struct PACKET_ZC_STALL_VENDING_UI_OPEN*)WFIFOP(fd, 0);
+
+	int c = 0;
+
+	for (int i = 0; i < MAX_INVENTORY; i++) {
+		if (sd->inventory.u.items_inventory[i].nameid > 0 && sd->inventory_data[i]) {
+			if (!pc_can_trade_item(sd, i))
+				continue;
+
+			p->items[c].index = i + 2; // client index
+			c++;
+		}
+	}
+
+	if (c > 0) {
+		p->packetType = HEADER_ZC_STALL_VENDING_UI_OPEN;
+
+		// Recalculate real length
+		len = c * sizeof(struct STALL_VENDING_UI_OPEN_sub) + sizeof(struct PACKET_ZC_STALL_VENDING_UI_OPEN);
+		p->PacketLength = len;
+		p->slots = 2 + sd->stallvending_level;
+
+		WFIFOSET(fd, len);
+
+		sd->state.prevend = 1;
+		sd->state.stall_ui_open = 1;
+	}
+	else
+		clif_stall_ui_close(sd, 100, STALLSTORE_OK);
+#endif
+}
+
+/// Open the buying stall UI
+void clif_stall_buying_open(map_session_data* sd) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	// Check if a shop is already opened for this char
+	if (stall_isStallOpen(sd->status.char_id)) {
+		clif_stall_ui_close(sd, 101, STALLSTORE_OK);
+		clif_displaymessage(sd->fd, "You can't open 2 stalls at the same time on a char.");
+		return;
+	}
+
+	sd->state.prevend = 1;
+	sd->state.stall_ui_open = 1;
+
+	struct PACKET_ZC_STALL_BUYING_UI_OPEN p = {};
+
+	p.packetType = HEADER_ZC_STALL_BUYING_UI_OPEN;
+	p.slot = 2 + sd->stall_skill_lv;
+
+	clif_send(&p, sizeof(p), sd, SELF);
+#endif
+}
+
+void clif_parse_stall_vending_set(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	const struct PACKET_CZ_STALL_VENDING_SET* p = (struct PACKET_CZ_STALL_VENDING_SET*)RFIFOP(fd, 0);
+
+	uint8* data = (uint8*)p->items;
+	short count = (p->PacketLength - sizeof(PACKET_CZ_STALL_VENDING_SET)) / 8;
+
+	stall_vending_setup(sd, p->storeName, p->xPos, p->yPos, data, count);
+#endif
+}
+
+void clif_parse_stall_buying_set(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	const struct PACKET_CZ_STALL_BUYING_SET* p = (struct PACKET_CZ_STALL_BUYING_SET*)RFIFOP(fd, 0);
+
+	short count = (p->PacketLength - sizeof(PACKET_CZ_STALL_BUYING_SET)) / 10;
+
+	stall_buying_setup(sd, p->storeName, p->xPos, p->yPos, p->items, count, p->total_price);
+#endif
+}
+
+void clif_stall_showunit(map_session_data* sd, struct s_stall_data* st) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+	nullpo_retv(st);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	struct PACKET_ZC_STALL_CHAR_DETAILS p = {};
+
+	p.packetType = HEADER_ZC_STALL_CHAR_DETAILS;
+	p.vender_id = st->vender_id;
+	p.job = 0;
+	p.xPos = st->x;
+	p.yPos = st->y;
+	p.sex = st->vd.sex;
+	p.head = st->vd.hair_style;
+	p.weapon = st->vd.weapon;
+	p.shield = st->vd.shield;
+	p.MidAccessory = st->vd.head_mid;
+	p.TopAccessory = st->vd.head_top;
+	p.BottomAccessory = st->vd.head_bottom;
+	p.headpalette = st->vd.hair_color;
+	p.bodypalette = st->vd.cloth_color;
+	p.BackAccessory = st->vd.robe;
+	safestrncpy(p.name, st->message, NAME_LENGTH);
+	p.unknow = st->vd.class_;
+
+	clif_send(&p, sizeof(p), sd, AREA);
+#endif
+}
+
+/// Close the shop ui when set
+void clif_stall_ui_close(map_session_data* sd, int type, int reason) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	if (reason != STALLSTORE_POSITION) {
+		sd->state.prevend = 0;
+		sd->state.workinprogress = WIP_DISABLE_NONE;
+		sd->state.stall_ui_open = 0;
+	}
+
+	struct PACKET_ZC_STALL_UI_CLOSE p = {};
+
+	p.packetType = HEADER_ZC_STALL_UI_CLOSE;
+	p.type = type;
+	p.reason = reason;
+
+	clif_send(&p, sizeof(p), sd, SELF);
+#endif
+}
+
+/// List items of the stall vending
+void clif_stall_vending_list(map_session_data* sd, s_stall_data* st) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	sd->vended_id = st->vender_id;
+
+	short j = 0;
+	for (int i = 0; i < st->vend_num; i++) {
+		if (st->items_inventory[i].amount > 0)
+			j++;
+	}
+	if (j == 0)
+		return; // no items
+
+	int len = sizeof(struct PACKET_ZC_STALL_VENDING_LIST_REQUEST) + j * sizeof(struct STALL_VENDING_LIST_REQUEST_sub);
+
+	WFIFOHEAD(fd, len);
+
+	struct PACKET_ZC_STALL_VENDING_LIST_REQUEST* p = (struct PACKET_ZC_STALL_VENDING_LIST_REQUEST*)WFIFOP(fd, 0);
+
+	p->packetType = HEADER_ZC_STALL_VENDING_LIST_REQUEST;
+	p->PacketLength = len;
+	p->unique_id = st->vended_id;
+	p->vender_id = st->vender_id;
+	if (st->vended_id == sd->status.char_id)
+		p->myStall = 1;
+	else
+		p->myStall = 0;
+	p->expireTime = static_cast<int>((st->expire_time - time(NULL)) * 1000); //if 0 == unlimited on client..
+
+	short slot = 0;
+	for (int i = 0; i < st->vend_num; i++) {
+		if (st->items_inventory[i].amount > 0) {
+			struct item_data* data = itemdb_search(st->items_inventory[i].nameid);
+
+			p->items[slot].price = st->price[i];
+			p->items[slot].amount = st->items_inventory[i].amount;
+			p->items[slot].index = i + 1;
+			p->items[slot].itemType = itemtype(st->items_inventory[i].nameid);
+			p->items[slot].itemId = client_nameid(st->items_inventory[i].nameid);
+			p->items[slot].identified = st->items_inventory[i].identify;
+			p->items[slot].damaged = st->items_inventory[i].attribute;
+			clif_addcards(&p->items[slot].slot, &st->items_inventory[i]);
+			clif_add_random_options(p->items[slot].option_data, st->items_inventory[i]);
+			p->items[slot].location = pc_equippoint_sub(sd, data);
+			p->items[slot].viewSprite = data->look;
+			p->items[slot].refine = st->items_inventory[i].refine;
+			p->items[slot].enchantgrade = st->items_inventory[i].enchantgrade;
+			slot++;
+		}
+	}
+
+	WFIFOSET(fd, len);
+#endif
+}
+
+/// List items of the stall buying
+void clif_stall_buying_list(map_session_data* sd, s_stall_data* st) {
+#if PACKETVER >= 20170208
+	nullpo_retv(sd);
+
+	int fd = sd->fd;
+
+	if (!session_isActive(fd)) {
+		return;
+	}
+
+	sd->vended_id = st->vender_id;
+
+	short j = 0;
+	for (int i = 0; i < st->vend_num; i++) {
+		if (st->amount[i] > 0)
+			j++;
+	}
+	if (j == 0)
+		return; // no items
+
+	int len = sizeof(struct PACKET_ZC_STALL_BUYING_LIST_REQUEST) + j * sizeof(struct PACKET_ZC_MYITEMLIST_BUYING_STORE_sub);
+
+	WFIFOHEAD(fd, len);
+
+	struct PACKET_ZC_STALL_BUYING_LIST_REQUEST* p = (struct PACKET_ZC_STALL_BUYING_LIST_REQUEST*)WFIFOP(fd, 0);
+
+	p->packetType = HEADER_ZC_STALL_BUYING_LIST_REQUEST;
+	p->PacketLength = len;
+	p->unique_id = st->vended_id;
+	p->vender_id = st->vender_id;
+	if (st->vended_id == sd->status.char_id)
+		p->myStall = 1;
+	else
+		p->myStall = 0;
+	p->expireTime = static_cast<int>((st->expire_time - time(NULL)) * 1000); //if 0 == unlimited on client..
+
+	uint64 total_price = 0;
+	short k = 0;
+	for (int i = 0; i < st->vend_num; i++) {
+		if (st->amount[i] > 0) {
+			p->items[k].price = st->price[i];
+			p->items[k].amount = st->amount[i];
+			p->items[k].itemType = itemtype(st->itemId[i]);
+			p->items[k].itemId = st->itemId[i];
+
+			total_price += st->price[i] * st->amount[i];
+			k++;
+		}
+	}
+	p->total_price = total_price;
+
+	WFIFOSET(fd, len);
+#endif
+}
+
+void clif_parse_stall_vending_cancel(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	clif_stall_ui_close(sd, 100, STALLSTORE_OK);
+#endif
+}
+
+void clif_parse_stall_buying_cancel(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	clif_stall_ui_close(sd, 101, STALLSTORE_OK);
+#endif
+}
+
+// Close from owner
+void clif_parse_stall_close(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	const struct PACKET_CZ_STALL_CLOSE* p = (struct PACKET_CZ_STALL_CLOSE*)RFIFOP(fd, 0);
+
+	if (p->srcId == sd->status.char_id)
+		stall_close(sd);
+#endif
+}
+
+// Close from gm
+void clif_parse_stall_close_from_gm(int fd, map_session_data* sd) {
+#if PACKETVER >= 20170208
+	const struct PACKET_CZ_STALL_CLOSE_FROM_GM* p = (struct PACKET_CZ_STALL_CLOSE_FROM_GM*)RFIFOP(fd, 0);
+
+	if (sd->status.char_id)
+		stall_close_from_gm(p->vender_id);
+#endif
+}
+
 
 void clif_laphine_upgrade_result( map_session_data *sd, bool failed ){
 #if PACKETVER_MAIN_NUM >= 20170726 || PACKETVER_RE_NUM >= 20170621 || defined(PACKETVER_ZERO)
