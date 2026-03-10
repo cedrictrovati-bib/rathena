@@ -23925,7 +23925,7 @@ void clif_stall_showunit(map_session_data* sd, struct s_stall_data* st) {
 	p.bodypalette = sd->status.clothes_color;
 	p.BackAccessory = sd->status.robe;
 	safestrncpy(p.name, st->message, NAME_LENGTH);
-	//p.unknow = sd->status.class_;
+	p.unknow = sd->status.class_;
 
 	clif_send(&p, sizeof(p), sd, AREA);
 #endif
@@ -24012,7 +24012,7 @@ void clif_stall_vending_list(map_session_data* sd, s_stall_data* st) {
 			p->items[slot].location = pc_equippoint_sub(sd, data);
 			p->items[slot].viewSprite = data->look;
 			p->items[slot].refine = st->items_inventory[i].refine;
-			//p->items[slot].enchantgrade = st->items_inventory[i].enchantgrade;
+			p->items[slot].enchantgrade = st->items_inventory[i].enchantgrade;
 			slot++;
 		}
 	}

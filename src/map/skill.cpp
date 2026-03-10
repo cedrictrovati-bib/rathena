@@ -4402,28 +4402,6 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 
 	//Check for undead skills that convert a no-damage skill into a damage one. [Skotlex]
 	switch (skill_id) {
-		case ALL_ASSISTANT_BUYING:
-		case ALL_ASSISTANT_VENDING:
-			if (sd)
-			{	//Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
-				if (!pc_can_give_items(sd)) {
-					clif_skill_fail(*sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-					if (skill_id == ALL_ASSISTANT_VENDING)
-						clif_stall_ui_close(sd, 100, 0);
-					else
-						clif_stall_ui_close(sd, 101, 0);
-				}
-				else {
-					sd->state.prevend = 1;
-					sd->state.workinprogress = WIP_DISABLE_ALL;
-					sd->stall_skill_lv = skill_lv;
-					if (skill_id == ALL_ASSISTANT_VENDING)
-						clif_skill_nodamage(src, *bl, skill_id, skill_lv, stall_ui_open(sd, skill_lv, 0) ? 0 : 1);
-					else
-						clif_skill_nodamage(src, *bl, skill_id, skill_lv, stall_ui_open(sd, skill_lv, 1) ? 0 : 1);
-				}
-			}
-			break;
  		case AL_HEAL:
 		case ALL_RESURRECTION:
 		case PR_ASPERSIO:
@@ -4470,6 +4448,28 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 	FreeBlockLock freeLock;
 	switch(skill_id)
 	{
+	case ALL_ASSISTANT_BUYING:
+	case ALL_ASSISTANT_VENDING:
+		if (sd)
+		{	//Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
+			if (!pc_can_give_items(sd)) {
+				clif_skill_fail(*sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+				if (skill_id == ALL_ASSISTANT_VENDING)
+					clif_stall_ui_close(sd, 100, 0);
+				else
+					clif_stall_ui_close(sd, 101, 0);
+			}
+			else {
+				sd->state.prevend = 1;
+				sd->state.workinprogress = WIP_DISABLE_ALL;
+				sd->stall_skill_lv = skill_lv;
+				if (skill_id == ALL_ASSISTANT_VENDING)
+					clif_skill_nodamage(src, *bl, skill_id, skill_lv, stall_ui_open(sd, skill_lv, 0) ? 0 : 1);
+				else
+					clif_skill_nodamage(src, *bl, skill_id, skill_lv, stall_ui_open(sd, skill_lv, 1) ? 0 : 1);
+			}
+		}
+		break;
 	// New guild skills [Celest]
 	case GD_BATTLEORDER:
 	case GD_REGENERATION:
