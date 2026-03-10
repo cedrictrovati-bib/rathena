@@ -48,14 +48,14 @@
 //anightmare_timer	time of entry
 //anightmare_wakeup	Alice quest variable also used to check if instance was finished before to skip dialogue
 //anightmare_aline	Aline quest variable
+//@warp niflheim 341 213
 
 //----Quest Starting NPC--------------------------
 niflheim,341,213,6	script	Alice#forest	10013,{
 	set .@party_id,getcharid(1);
 	set .@md_name$,"Alice's Nightmare";
 
-	set .@anightmare_timer,checkquest(40400,PLAYTIME); // 20 hours so daily instance
-	set .@anightmare_timer2,checkquest(40401,PLAYTIME); // 3 hours
+	set .@anightmare_timer,checkquest(40400,PLAYTIME); // 1 day
 	
 	mes "[^0000ffAlice^000000]";
 	mes "Help me...";
@@ -72,32 +72,23 @@ niflheim,341,213,6	script	Alice#forest	10013,{
 	}
 	
 	if (.@anightmare_timer == 0 || .@anightmare_timer == 1){
-		if (.@anightmare_timer2 == -1 || .@anightmare_timer2 == 2 || anightmare_rand!=.@randn){
-							//show how long left
-							set .@dun_lim_time,anightmare_timer+72000; // 1 week
-							set .@dun_cur_time,gettimetick(2);
-							set .@dun_ent_t,(.@dun_lim_time - .@dun_cur_time);
-							set .@dun_h,(.@dun_ent_t / 3600);
-							set .@dun_m,(.@dun_ent_t - (.@dun_h * 3600)) / 60;
-							set .@dun_s,.@dun_ent_t - ((.@dun_h * 3600) + (.@dun_m * 60));
+		//show how long left
+		set .@dun_lim_time,anightmare_timer+72000; // 1 week
+		set .@dun_cur_time,gettimetick(2);
+		set .@dun_ent_t,(.@dun_lim_time - .@dun_cur_time);
+		set .@dun_h,(.@dun_ent_t / 3600);
+		set .@dun_m,(.@dun_ent_t - (.@dun_h * 3600)) / 60;
+		set .@dun_s,.@dun_ent_t - ((.@dun_h * 3600) + (.@dun_m * 60));
 
-							mes "A tick dark fog is preventing you from going any further.";
-							mes "";
-							mes "^ff0000" + .@dun_h + " H " + .@dun_m + " M " + .@dun_s + " S before you can re-enter.";
-							close;
-		}else{
-			if (.@party_id != anightmare_partyid) {
-				mes "[^0000ff"+strcharinfo(0)+"^000000]";
-				mes "My friends Abandonned me!";
-				close;
-			}
-		}
+		mes "A tick dark fog is preventing you from going any further.";
+		mes "";
+		mes "^ff0000" + .@dun_h + " H " + .@dun_m + " M " + .@dun_s + " S before you can re-enter.";
+		close;
 	}else{
 		//reset the random number if not in the instance time window
 		if (anightmare_rand !=0){
 			set anightmare_rand,0;
-			erasequest 40400;
-			erasequest 40401;
+			//erasequest 40400;
 		}
 		
 	}
@@ -164,8 +155,7 @@ niflheim,341,213,6	script	Alice#forest	10013,{
 					if (.@anightmare_timer == -1 || .@anightmare_timer == 2){//check if instance timer is already set
 						set anightmare_timer,gettimetick(2);
 						set anightmare_partyid, getcharid(1);
-						setquest 40400;
-						setquest 40401;
+						//setquest 40400;
 						set anightmare_rand,'random_number;
 					}
 					close;
