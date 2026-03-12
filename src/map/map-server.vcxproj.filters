@@ -170,6 +170,9 @@
     <ClInclude Include="elemental.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+	<ClInclude Include="faction.hpp">
+	  <Filter>Header Files</Filter>
+	</ClInclude>
     <ClInclude Include="guild.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -307,6 +310,9 @@
     <ClCompile Include="elemental.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+	<ClCompile Include="faction.cpp">
+	  <Filter>Source Files</Filter>		  
+	</ClCompile>
     <ClCompile Include="guild.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

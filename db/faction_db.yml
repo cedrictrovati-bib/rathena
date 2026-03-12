@@ -1,0 +1,87 @@
+###########################################################################
+# Faction Database
+###########################################################################
+#
+# Faction Settings
+#
+###########################################################################
+# - Id                Instance ID.
+#   Name              Faction Name: Faction Name
+#   PlayerName        Faction Player name: Player's name on FvF maps
+#   HomeMap           Location: Faction Location (home)- Map Name where players start.
+#   HomeX             X Coordinate where players start.
+#   HomeY             Y Coordinate where players start.
+#   Race              Formless, Undead, Brute, Plant, Insect,
+# 		              Fish, Demon, Demi-Human, Angel, Dragon
+#   Element           Neutral, Water, Earth, Fire, Wind,
+# 	                  Poison, Holy, Dark, Spirit, Undead
+# 	ElementLevel       lvl: 1 ~ 4
+#   Size              Small, Medium, Large
+#   rpRace            Roleplay Race
+#   HairColor         Default Hair color
+#   HairStyle         Default Hair style
+#   ClothColor        Default Cloth color
+#   MsgColor          Color of messages (0xRRGGBB): Ex. 0xFF0000 - red
+#   FunctorAura       Color of Aura (0xRRGGBB): Ex. 0xFF0000 - red. Only work if you have Functor Aura feature
+#   Aura:
+#     Effect          see doc/effect_list.txt
+#   FunctorNick       color_nicks_group_id set in color_nicks.txt. Only work if you have Color Nicks by Functor
+#   Script            Script Bonus for each faction
+#   LeaderAuraBonus   Script bonus for faction aura around faction leader like guild master's aura
+#   Alliance:
+#     Faction         Alliance Faction ID
+###########################################################################
+
+Header:
+  Type: FACTION_DB
+  Version: 1
+
+Body:
+  - Id: 1
+    Name: Paradise
+    PlayerName: Angel
+    HomeMap: gonryun
+    HomeX: 0
+    HomeY: 0
+    Race: Angel
+    Element: Holy
+    ElementLevel: 1
+    Size: Medium
+    rpRace: Human
+    HairColor: 2
+    HairStyle: 2
+    ClothColor: 2
+    MsgColor: 0x2986CC
+    FunctorAura: 0x2986CC
+    Aura:
+      240: true
+      485: true
+    FunctorNick: 3
+    Script: |
+      bonus bInt,3;
+    LeaderAuraBonus: |
+      bonus bInt,30;
+  - Id: 2
+    Name: Hell
+    PlayerName: Demon
+    Location:
+    HomeMap: morocc
+    HomeX: 0
+    HomeY: 0
+    Race: Undead
+    Element: Undead
+    ElementLevel: 1
+    Size: Medium
+    rpRace: Dark Elves
+    HairColor: 5
+    HairStyle: 5
+    ClothColor: 5
+    MsgColor: 0xFF0000
+    FunctorAura: 0xFF0000
+    Aura:
+      239: true
+      418: true
+    Script: |
+      bonus bStr,3;
+    LeaderAuraBonus: |
+      bonus bStr,30;

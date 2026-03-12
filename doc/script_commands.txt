@@ -262,6 +262,8 @@ DISABLED	Make the warp specified disabled.
 <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>}
 <map name>,<x>,<y>,<facing>%TAB%script(<state>)%TAB%<NPC Name>%TAB%<sprite id>,{<code>}
 <map name>,<x>,<y>,<facing>%TAB%script(<state>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>}
+<map name>,<x>,<y>,<facing>[,<Faction ID>]%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,{<code>}
+<map name>,<x>,<y>,<facing>[,<Faction ID>]%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>}
 
 This will place an NPC object on a specified map at the specified location, and
 is a top-level command you will use the most in your custom scripting. The NPCs
@@ -276,6 +278,8 @@ towards the bottom of the map, you use facing 4, and to make it look southeast
 it's facing 5.)
 
 <state> works like the warp <state> defined above, but for NPCs.
+
+Faction ID is optional parameter. If faction id was given NPC would have a faction id.
 
 Sprite ID is the sprite number or constant used to display this particular NPC.
 You may also use a monster's ID instead to display a monster sprite for this NPC.
@@ -331,9 +335,11 @@ these floating NPC objects are for. More on that below.
 
 -%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>{,discount},<itemid>:<price>{,<itemid>:<price>...}
 <map name>,<x>,<y>,<facing>%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>{,discount},<itemid>:<price>{,<itemid>:<price>...}
+<map name>,<x>,<y>,<facing>{,<Faction ID>[,<Faction ID>:<Discount>...]}%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>{,discount},<itemid>:<price>{,<itemid>:<price>...}
 
 -%TAB%cashshop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
 <map name>,<x>,<y>,<facing>%TAB%cashshop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
+<map name>,<x>,<y>,<facing>[,<Faction ID>]%TAB%cashshop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
 
 -%TAB%itemshop%TAB%<NPC Name>%TAB%<sprite id>,<costitemid>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
 <map name>,<x>,<y>,<facing>%TAB%itemshop%TAB%<NPC Name>%TAB%<sprite id>,<costitemid>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
@@ -354,6 +360,8 @@ The Item ID is the number of item in the 'db/item_db.yml' database. If Price is 
 to -1, the 'buy price' given in the item database will be used. Otherwise, the
 price you gave will be used for this item, which is how you create differing
 prices for items in different shops.
+
+Faction ID is optional parameter. If faction id was given Shop would have a faction id.
 
 Optionally you can specify the discount option and set it to "yes" or "no", to enable or disable discounting.
 
@@ -2432,6 +2440,7 @@ invoking character. Whatever it returns is determined by type.
  1 - The name of the party they're in if any.
  2 - The name of the guild they're in if any.
  3 - The name of the map the character is in.
+ 4 - The name of the faction unit the character is in.
 
 If a character is not a member of any party or guild, an empty string will be
 returned when requesting that information.
@@ -2553,6 +2562,7 @@ Type is the kind of associated ID number required:
  3 - Account ID
  4 - Battle Ground ID
  5 - Clan ID
+ 6 - Faction ID
 
 For most purposes other than printing it, a number is better to have than a name
 (people do horrifying things to their character names).
@@ -2578,6 +2588,7 @@ given, IDs of that NPC are retrieved instead. Type specifies what ID
 to retrieve and can be one of the following:
 
     0 - NPC Game ID
+	1 - Faction ID
 
 If an invalid type is given or the NPC does not exist, 0 is returned.
 
@@ -11635,6 +11646,225 @@ See 'achievementinfo' for valid <type> values.
 - Excludes ACHIEVEINFO_LEVEL and ACHIEVEINFO_SCORE.
 
 ---------------------------------------
+
+*factioninfo(<Faction ID>,<Type>{,<Val>});
+
+Retrieves information about faction.
+'Type' specifies what information to retrieve and can be one of the following:
+
+	0			-	Faction's name
+	1			-	Player's name
+	2			-	Location map (@home)
+	3			-	X Coordinate
+	4			-	Y Coordinate
+	5			-	Race
+	6			-	Element
+	7			-	Element lvl
+	8			-	Size
+	9			-	Hair Color default
+	10			-	Hair Color min
+	11			-	Hair Color max
+	12			-	Hair Style default
+	13			-	Hair Style min
+	14			-	Hair Style max
+	15			-	Cloth Style default
+	16			-	Cloth Style min
+	17			-	Cloth Style max
+	18			-	Voting State
+	19 + Val	-	Alliance ID
+	20 + Val	-	Aura ID
+
+'Val' may be:
+	between 0 and MAX_FACTION_ALLIANCE if Type is 19
+	between 0 and MAX_AURA_EFF if Type is 20
+	see faction.h
+
+Example:
+
+	// Information about Character's faction race
+	mes "Your race number is: "+factioninfo(getcharid(5),5);
+
+	// Information about Character's faction auras
+	for( .@i = 0; .@i < 3; .@i++ )
+		mes "Your №"+.@i+" aura is: "+factioninfo(getcharid(5),20,.@i);
+
+---------------------------------------
+
+*setfaction(<Faction ID>{,<Char ID>});
+
+This command sets the Faction for the attached or given Character ID.
+
+---------------------------------------
+
+*setfactionleader(<Faction ID>,<Char ID>);
+
+This command sets the Faction leader attached or given Character ID.
+
+---------------------------------------
+
+*relicadd(<Faction ID>,<Item ID>,<Slot>);
+
+This command adds for Faction Relic (like item bonus) in 'Slot'.
+'Slot' may be between 0 and MAX_RELIC (see faction.h)
+
+Faction members would be receive this bonus if slot is activated
+by 'relicactivate' command.
+
+Example:
+
+	// Add an item 1533(Warrior's Balmung) with bonus { bonus bAllStats,5; }
+	relicadd(getcharid(5),1533,0);
+
+---------------------------------------
+
+*relicgetinfo(<Faction ID>,<Slot>);
+
+Retrieves information about relic in slot.
+
+Example:
+
+	// Information about Faction's Relics
+	for( .@i = 0; .@i < 3; .@i++ )
+		mes "Your №"+.@i+" relic is: "+relicgetinfo(getcharid(5),.@i);
+
+---------------------------------------
+
+*relicactivate(<Faction ID>,<Slot>,<Val>);
+
+This command activate the Faction Relic.
+'Val' may be above 0 for activate or 0 for deactivate.
+
+Example:
+
+	// Activate the Faction Relic in Slot 0
+	relicactivate(getcharid(5),0,1);
+
+	// De-activate the Faction Relic in Slot 2
+	relicactivate(getcharid(5),2,0);
+
+---------------------------------------
+
+*relicdel(<Faction ID>,<Slot>);
+
+This command delete the Faction Relic.
+
+Example:
+
+	// Delete the Faction Relic in Slot 1
+	relicdel(getcharid(5),1);
+
+---------------------------------------
+
+*votinginfo(<Faction ID>);
+
+This command will find members of a specified faction who have votes or voted
+and returns their votes/names into an array of temporary global variables.
+
+Upon executing this,
+
+$@voting_charid[] is a global temporary number array which contains all the
+					character id of these faction members
+
+$@voting_charname$[] is a global temporary string array which contains all the
+					names these faction members
+
+$@voting_votes[]   is a global temporary number array which contains the
+					characters's votes of these party members.
+
+$@voting_voted[]   is a global temporary number array which contains the
+					1 if character voted or 0 if not.
+
+$@votinglist_count   is the number of faction members that were found.
+
+---------------------------------------
+
+*vote(<Char ID>{,<Amount of Votes>});
+
+This command vote for given character ID. Needs attached player.
+By default amount of votes is 1.
+
+---------------------------------------
+
+*addvotes(<Char ID>{,<Amount of Votes>});
+
+This command vote for given character ID. No need attached player.
+By default amount of votes is 1.
+
+---------------------------------------
+
+*votingstart({<Faction ID>});
+
+This command start the voting process for faction.
+If Faction ID not given this start voting for all factions.
+
+Example:
+
+	// Start voting process for faction ID 3
+	votingstart(3);
+
+	// Start voting process for all factions
+	votingstart();
+
+---------------------------------------
+
+*votingstop({<Faction ID>});
+*votingend({<Faction ID>});
+
+This command ends the voting process for faction.
+If Faction ID not given this ends voting for all factions.
+
+Example:
+
+	// End voting process for faction ID 3
+	votingstop(3);
+
+	// End voting process for all factions
+	votingend();
+
+---------------------------------------
+
+*factionmonster(<faction ID>,"<map name>",<x>,<y>,"<name to show>",<mob ID>,<amount>{,"<event label>"});
+*areafactionmonster (<faction ID>,"<map name>",<x1>,<y1>,<x2>,<y2>,"<name to show>",<mob ID>,<amount>{,"<event label>"});
+
+This command will spawn a faction monster with specified amount on the specified coordinates on the specified
+map. If the script is invoked by a character, a special map name, "this", will
+be recognized to mean the name of the map the invoking character is located at.
+This command works fine in the item scripts.
+
+The same command arguments mean the same things as described above in the
+beginning of this document when talking about permanent monster spawns. Monsters
+spawned in this manner will not respawn upon being killed.
+
+Unlike the permanent monster spawns, if the mob id is -1, a random monster will
+be picked from the entire database according to the rules configured in the
+server for dead branches. This will work for all other kinds of non-permanent
+monster spawns.
+
+The only very special thing about this command is an event label, which is an
+optional parameter. This label is written like '<NPC object name>::<label name>'
+and upon the monster being killed, it will execute the script inside of the
+specified NPC object starting from the label given. The RID of the player
+attached at this execution will be the RID of the killing character.
+
+    factionmonster faction_id,"place",60,100,"Poring",1002,1,"NPCNAME::OnLabel";
+
+The coordinates of 0,0 will spawn the monster on a random place on the map.
+
+The 'areafactionmonster' command works much like the 'factionmonster' command
+and is not significantly different, but spawns the monsters within a square
+defined by x1/y1-x2/y2.
+
+---------------------------------------
+
+*fvfon "<map name>"{,Faction ID};
+*fvfoff "<map name>";
+
+These commands will turn FvF mode for the specified maps on and off, setting up
+appropriate map flags. In FvF mode factions may fight among themselves.
+.
+
+---------------------------------------
+
 
 *addfame(<amount>,{,<char id>})
 

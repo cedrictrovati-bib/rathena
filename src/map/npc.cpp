@@ -2225,6 +2225,17 @@ int32 npc_click(map_session_data* sd, npc_data* nd)
 	if (nd->class_ < 0 || nd->sc.option&OPTION_HIDE)
 		return 1;
 
+	if( sd->status.faction_id && nd->faction_id ) {
+		if( battle_config.faction_npc_settings == 1 && !faction_check_alliance(sd,nd) )
+		{
+			clif_displaymessage(sd->fd, msg_txt(sd,4037));
+			return 1;
+		} else if( !battle_config.faction_npc_settings && sd->status.faction_id != nd->faction_id ) {
+			clif_displaymessage(sd->fd, msg_txt(sd,4036));
+			return 1;
+		}
+	}
+
 	if( npc_is_hidden_dynamicnpc( *nd, *sd ) ){
 		return 1;
 	}
@@ -2873,7 +2884,7 @@ e_purchase_result npc_buylist( map_session_data* sd, std::vector<s_npc_buy_list>
 		}
 
 		if (npc_shop_discount(nd))
-			value = pc_modifybuyvalue(sd,value);
+			value = pc_modifybuyvalue(sd,nd,value);
 
 		z += (double)value * amount;
 		w += itemdb_weight(nameid) * amount;
@@ -3882,7 +3893,7 @@ npc_data* npc_add_warp(char* name, int16 from_mapid, int16 from_x, int16 from_y,
  * Parses a warp npc.
  * Line definition <from mapname>,<fromX>,<fromY>,<facing>%TAB%warp(<state)%TAB%<warp name>%TAB%<spanx>,<spany>,<to mapname>,<toX>,<toY>
  * Line definition <from mapname>,<fromX>,<fromY>,<facing>%TAB%warp2(<state)%TAB%<warp name>%TAB%<spanx>,<spany>,<to mapname>,<toX>,<toY>
- * @param w1 : word 1 before tab (<from map name>,<fromX>,<fromY>,<facing>)
+ * @param w1 : word 1 before tab (<from map name>,<fromX>,<fromY>,<facing>[,<Faction ID>])
  * @param w2 : word 2 before tab (warp), keyword that sent us in this parsing
  * @param w3 : word 3 before tab (<warp name>)
  * @param w4 : word 4 before tab (<spanx>,<spany>,<to mapname>,<toX>,<toY>)
@@ -4002,22 +4013,27 @@ static const char* npc_parse_warp(char* w1, char* w2, char* w3, char* w4, const 
 static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
 {
 	char *p, point_str[32];
-	int32 m, is_discount = 0;
+	int32 m, is_discount = 0, i;
+	std::shared_ptr<s_faction_db> fdb;
 	uint16 dir;
 	int16 x, y;
 	t_itemid nameid = 0;
 	npc_data *nd;
 	enum npc_subtype type;
 
-	if( strcmp(w1,"-") == 0 )
+	char *t_p;
+	int32 faction_id = 0, faction_id2 = 0, fdiscount = 0;
+	int32 t_discount[MAX_FACTION];
+	memset(t_discount, 0, sizeof(t_discount));
+	if( w1[0] == '-' )
 	{// 'floating' shop?
 		x = y = dir = 0;
 		m = -1;
 	}
 	else
-	{// w1=<map name>,<x>,<y>,<facing>
+	{// w1=<map name>,<x>,<y>,<facing>[,<Faction ID>]
 		char mapname[MAP_NAME_LENGTH_EXT];
-		if( sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4
+		if ((sscanf(w1, "%15[^,],%6hd,%6hd,%4hd,%d", mapname, &x, &y, &dir, &faction_id) != 5 && sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4)
 		||	strchr(w4, ',') == nullptr )
 		{
 			ShowError("npc_parse_shop: Invalid shop definition in file '%s', line '%d'.\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
@@ -4043,6 +4059,32 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		type = NPCTYPE_MARKETSHOP;
 	else
 		type = NPCTYPE_SHOP;
+
+	if( (p = strchr(w1,'[')) != NULL && (t_p = strchr(w1,']')) != NULL ) // [<Faction ID>:<Discount>]
+	{
+		p++;
+		for( i = 0; i < MAX_FACTION && p; i++ )
+		{
+			if( sscanf(p, "%d:%d", &faction_id2, &fdiscount) != 2 && sscanf(p, ",%d:%d", &faction_id2, &fdiscount) != 2 )
+			{
+				ShowError("npc_parse_shop: Invalid discount definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n", filepath, strline(buffer,start-buffer), w1);
+				break;
+			}
+
+			if( (fdb = faction_db.find(faction_id2)) == NULL)
+			{
+				ShowWarning("npc_parse_shop: Invalid faction ID in file '%s', line '%d' (id '%d').\n", filepath, strline(buffer,start-buffer), faction_id2);
+				p = strchr(p+1,',');
+				continue;
+			}
+
+			cap_value(fdiscount,battle_config.faction_disc_min,battle_config.faction_disc_max);
+			t_discount[faction_id2-1] = fdiscount;
+			p = strchr(p+1,',');
+		}
+	}
+	else if (p != NULL && t_p == NULL)
+		ShowWarning("npc_parse_shop: Invalid format: '[]' column not found in file '%s', line '%d' .\n", filepath, strline(buffer,start-buffer));
 
 	p = strchr(w4,',');
 	memset(point_str,'\0',sizeof(point_str));
@@ -4197,6 +4239,12 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		return strchr(start,'\n');// continue
 	}
 
+	if( faction_id && (fdb = faction_db.find(faction_id)) == NULL)
+	{
+		ShowWarning("npc_parse_shop: Invalid faction ID '%d' in file '%s', line '%d'.\n Defaulting to 0.\n", faction_id, filepath, strline(buffer,start-buffer));
+		faction_id = 0;
+	}
+
 	if( type == NPCTYPE_ITEMSHOP ){
 		// Item shop currency
 		nd->u.shop.itemshop_nameid = nameid;
@@ -4207,9 +4255,11 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 
 	nd->u.shop.discount = is_discount > 0;
 
+	memcpy(nd->u.shop.fdiscount, t_discount, sizeof(t_discount));
 	npc_parsename(nd, w3, start, buffer, filepath);
 	nd->class_ = m == -1 ? JT_FAKENPC : npc_parseview(w4, start, buffer, filepath);
 	nd->speed = DEFAULT_NPC_WALK_SPEED;
+	nd->faction_id = faction_id;
 
 	++npc_shop;
 	nd->type = BL_NPC;
@@ -4390,6 +4440,8 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	int32 label_list_num;
 	npc_data* nd;
 
+	int32 faction_id = 0;
+	std::shared_ptr<s_faction_db> fdb;
 	if( strcmp(w1, "-") == 0 )
 	{// floating npc
 		x = 0;
@@ -4400,7 +4452,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	{// npc in a map
 		char mapname[MAP_NAME_LENGTH_EXT];
 
-		if( sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4 )
+		if (sscanf(w1, "%15[^,],%6hd,%6hd,%4hd,%d", mapname, &x, &y, &dir, &faction_id) != 5 && sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4)
 		{
 			ShowError("npc_parse_script: Invalid placement format for a script in file '%s', line '%d'. Skipping the rest of file...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
 			return nullptr;// unknown format, don't continue
@@ -4431,6 +4483,11 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 		db_clear(label_db); // not needed anymore, so clear the db
 	}
 
+	if( faction_id && (fdb = faction_db.find(faction_id)) == NULL )
+ 	{
+ 		ShowWarning("npc_parse_script: Invalid faction ID '%d'in file '%s', line '%d'.\n Defaulting to 0.\n", faction_id, filepath, strline(buffer,start-buffer));
+ 		faction_id = 0;
+ 	}
 	nd = npc_create_npc(m, x, y);
 
 	if( sscanf(w4, "%*[^,],%6hd,%6hd", &xs, &ys) == 2 )
@@ -4451,6 +4508,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	nd->u.scr.label_list = label_list;
 	nd->u.scr.label_list_num = label_list_num;
 
+	nd->faction_id = faction_id;
 	++npc_script;
 	nd->type = BL_NPC;
 	nd->subtype = NPCTYPE_SCRIPT;
@@ -4518,10 +4576,10 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 
 /// Duplicate a warp, shop, cashshop or script. [Orcao]
 /// warp: <map name>,<x>,<y>,<facing>%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<spanx>,<spany>
-/// shop/cashshop/npc: -%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>
-/// shop/cashshop/npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>
+/// shop/cashshop/npc: -[,Faction ID:%%]%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>
+/// shop/cashshop/npc: <map name>,<x>,<y>,<facing>[,Faction ID[,Faction ID:%%]]%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>
 /// npc: -%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
-/// npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
+/// npc: <map name>,<x>,<y>,<facing>[,Faction ID]%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
 const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath, map_session_data* owner = nullptr ){
 	int16 x, y, m, xs = -1, ys = -1;
 	int16 dir;
@@ -4534,6 +4592,8 @@ const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const c
 	int32 type;
 	npc_data* nd;
 	npc_data* dnd;
+	int32 faction_id = 0;
+	std::shared_ptr<s_faction_db> fdb;
 
 	end = strchr(start,'\n');
 	length = strlen(w2);
@@ -4561,7 +4621,7 @@ const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const c
 	} else {
 		char mapname[MAP_NAME_LENGTH_EXT];
 
-		if( sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4 ) { // <map name>,<x>,<y>,<facing>
+		if (sscanf(w1, "%15[^,],%6hd,%6hd,%4hd,%d", mapname, &x, &y, &dir, &faction_id) != 5 && sscanf(w1, "%15[^,],%6hd,%6hd,%4hd", mapname, &x, &y, &dir) != 4) { // <map name>,<x>,<y>,<facing>[,<Faction ID>]
 			ShowError("npc_parse_duplicate: Invalid placement format for duplicate in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
 			return end;// next line, try to continue
 		}
@@ -4581,6 +4641,12 @@ const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const c
 		return end;// next line, try to continue
 	}
 
+	if( faction_id && (fdb = faction_db.find(faction_id)) == NULL )
+	{
+		ShowError("npc_parse_duplicate: Invalid faction ID '%d' in file '%s', line '%d'. Defaulting to 0,\n", faction_id, filepath, strline(buffer,start-buffer));
+		faction_id = 0;
+	}
+
 	nd = npc_create_npc(m, x, y);
 	npc_parsename(nd, w3, start, buffer, filepath);
 	nd->class_ = m == -1 ? JT_FAKENPC : npc_parseview(w4, start, buffer, filepath);
@@ -4588,6 +4654,7 @@ const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const c
 	nd->src_id = src_id;
 	nd->type = BL_NPC;
 	nd->subtype = (enum npc_subtype)type;
+	nd->faction_id = faction_id;
 
 	if( owner != nullptr ){
 		nd->dynamicnpc.owner_char_id = owner->status.char_id;
@@ -4615,6 +4682,7 @@ const char* npc_parse_duplicate( char* w1, char* w2, char* w3, char* w4, const c
 			nd->u.shop.shop_item = dnd->u.shop.shop_item;
 			nd->u.shop.count = dnd->u.shop.count;
 			nd->u.shop.discount =  dnd->u.shop.discount;
+			memcpy(nd->u.shop.fdiscount, dnd->u.shop.fdiscount, sizeof(dnd->u.shop.fdiscount));
 			break;
 
 		case NPCTYPE_WARP:
@@ -5222,12 +5290,14 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	char mapname[MAP_NAME_LENGTH_EXT], mobname[NAME_LENGTH], sprite[NAME_LENGTH];
 	struct spawn_data mob, *data;
 	int32 ai = AI_NONE; // mob_ai
+	int faction_id = 0;
+	std::shared_ptr<s_faction_db> fdb;
 
 	memset(&mob, 0, sizeof(struct spawn_data));
 
 	mob.state.boss = !strcmpi(w2,"boss_monster");
 
-	// w1=<map name>{,<x>,<y>{,<xs>,<ys>}}
+	// w1=<map name>{,<x>,<y>,<xs>{,<ys>[,<Faction ID>]}}
 	// w3=<mob name>{,<mob level>}
 	// w4=<mob id>,<amount>{,<delay1>{,<delay2>{,<event>{,<mob size>{,<mob ai>}}}}}
 	if( ( w1count = sscanf(w1, "%15[^,],%6hd,%6hd,%6hd,%6hd", mapname, &x, &y, &xs, &ys) ) < 1
@@ -5245,6 +5315,13 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	m =  map_mapname2mapid(mapname);
 	if( m < 0 )//Not loaded on this map-server instance.
 		return strchr(start,'\n');// skip and continue
+
+	if( faction_id && (fdb = faction_db.find(faction_id)) == NULL )
+	{
+		ShowWarning("npc_parse_script: Invalid faction ID '%d'in file '%s', line '%d'.\n Defaulting to 0.", faction_id, filepath, strline(buffer,start-buffer));
+		faction_id = 0;
+	}
+
 	mob.m = (uint16)m;
 
 	struct map_data *mapdata = map_getmapdata(m);
@@ -5317,6 +5394,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 		mob.state.size = size;
 	if (ai > AI_NONE && ai <= AI_MAX)
 		mob.state.ai = static_cast<enum mob_ai>(ai);
+	mob.faction_id = faction_id;
 
 	if (mob.xs < 0) {
 		ShowWarning("npc_parse_mob: Negative x-span %hd for mob ID %d (file '%s', line '%d'). Defaulting to map-wide.\n", mob.xs, mob_id, filepath, strline(buffer, start - buffer));
@@ -5501,6 +5579,23 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 				map_setmapflag_sub(m, MF_BATTLEGROUND, true, &args);
 			} else
 				map_setmapflag(m, MF_BATTLEGROUND, false);
+			break;
+		case MF_FVF:
+			if (state) {
+				union u_mapflag_args args = {};
+				struct map_data *mapdata = map_getmapdata(m);
+				int relic = -1;
+				int faction_val = 0; // Use a temporary int for scanning
+
+				if( sscanf(w4, "%d,%d", &faction_val, &relic) == 2 || sscanf(w4, "%d", &faction_val) == 1 )
+				{
+					mapdata->faction.id = faction_val;
+					mapdata->faction.relic = relic;
+				}
+
+				map_setmapflag_sub(m, MF_FVF, true, &args);
+			} else
+				map_setmapflag(m, MF_FVF, false);
 			break;
 
 		case MF_NOCOMMAND:

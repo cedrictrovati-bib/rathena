@@ -42,6 +42,7 @@
 #include "date.hpp" // is_day_of_*()
 #include "duel.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "instance.hpp"
@@ -2273,6 +2274,11 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
 		clif_changemap( *sd, sd->m, sd->x, sd->y );
 	}
 
+	if(channel_config.faction_tmpl.opt&CHAN_OPT_AUTOJOIN && sd->status.faction_id) {
+		std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+		channel_join((struct Channel *)fdb->channel,sd);
+	}
+
 	pc_validate_skill(sd);
 
 	/* [Ind] */
@@ -2401,6 +2407,29 @@ void pc_reg_received(map_session_data *sd)
 	// Cash shop
 	sd->cashPoints = static_cast<int32>(pc_readaccountreg(sd, add_str(CASHPOINT_VAR)));
 	sd->kafraPoints = static_cast<int32>(pc_readaccountreg(sd, add_str(KAFRAPOINT_VAR)));
+
+	if(sd->status.faction_id){
+ 		std::shared_ptr<s_faction_db> fdb;
+
+ 		if( (fdb = faction_db.find(sd->status.faction_id)) != nullptr ){
+ 			channel_fjoin(sd,1);
+ 
+ 			#ifdef FUNCTORAURA
+ 			if( fdb->aura_data != 0){
+ 				pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+ 				pc_setglobalreg(sd, add_str("SHOW_AURAS_MODE"), 0)
+ 			}
+ 			#endif
+ 
+ 			#ifdef FUNCTORNICK
+ 			if(fc->color_nicks_group_id)
+ 				pc_setglobalreg(sd, add_str("CN_GROUP_ID"), fc->color_nicks_group_id);
+ 			#endif
+ 		}
+ 	}
+ 
+ 	if (battle_config.faction_points)
+ 		sd->faction_points = static_cast<int>(pc_readreg2(sd, "#factionpts"));
 
 	// Cooking Exp
 	sd->cook_mastery = static_cast<int16>(pc_readglobalreg(sd, add_str(COOKMASTERY_VAR)));
@@ -5691,9 +5720,9 @@ int32 pc_identifyall(map_session_data *sd, bool identify_item)
 /*==========================================
  * Update buying value by skills
  *------------------------------------------*/
-int32 pc_modifybuyvalue(const map_session_data* sd, int32 orig_value )
+int32 pc_modifybuyvalue(const map_session_data* sd, const struct npc_data* nd, int orig_value)
 {
-	int32 skill,val = orig_value,rate1 = 0,rate2 = 0;
+	int32 skill,val = orig_value,rate1 = 0,rate2 = 0, mod = 0;
 	if((skill=pc_checkskill(sd,MC_DISCOUNT))>0)	// merchant discount
 		rate1 = 5+skill*2-((skill==10)? 1:0);
 	if((skill=pc_checkskill(sd,RG_COMPULSION))>0)	 // rogue discount
@@ -5701,6 +5730,8 @@ int32 pc_modifybuyvalue(const map_session_data* sd, int32 orig_value )
 	if(rate1 < rate2) rate1 = rate2;
 	if(rate1)
 		val = (int32)((double)orig_value*(double)(100-rate1)/100.);
+	if (sd->status.faction_id && (mod = nd->u.shop.fdiscount[sd->status.faction_id - 1]))
+		val = (int)((double)orig_value * (double)(100 + mod) / 100.);
 	if(val < battle_config.min_shop_buy)
 		val = battle_config.min_shop_buy;
 
@@ -9981,6 +10012,18 @@ int32 pc_dead(map_session_data *sd,block_list *src)
 		pc_setparam(ssd, SP_KILLEDRID, sd->id);
 		npc_script_event( *ssd, NPCE_KILLPC );
 
+		if(battle_config.faction_points){
+			int ip_check = 0, gepard_check = 0;
+			if(battle_config.faction_points&1 && (session[sd->fd]->client_addr == session[ssd->fd]->client_addr))
+				ip_check = 1;
+			#ifdef GEPARD
+			if(battle_config.faction_points&2 && (session[sd->fd]->gepard_info.unique_id == session[ssd->fd]->gepard_info.unique_id))
+				gepard_check = 1;
+			#endif
+			if(!ip_check && !gepard_check)
+				ssd->faction_points++;
+		}
+
 		if (battle_config.pk_mode&2) {
 			ssd->status.manner -= 5;
 			if(ssd->status.manner < 0)
@@ -10168,14 +10211,15 @@ int32 pc_dead(map_session_data *sd,block_list *src)
 		if (bg) {
 			if (bg->cemetery.map > 0) { // Respawn by BG
 				sd->respawn_tid = add_timer(tick + 1000, pc_respawn_timer, sd->id, 0);
-				return 1|8;
+				return 1 | 8;
 			}
 		}
 	}
 
-	//Reset "can log out" tick.
+	// Reset "can log out" tick.
 	if( battle_config.prevent_logout )
 		sd->canlog_tick = gettick() - battle_config.prevent_logout;
+
 	return 1;
 }
 
@@ -10192,6 +10236,11 @@ void pc_revive(map_session_data *sd,uint32 hp, uint32 sp, uint32 ap) {
 		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->guild->guild,GD_GLORYWOUNDS));
 		guild_guildaura_refresh(sd,GD_SOULCOLD,guild_checkskill(sd->guild->guild,GD_SOULCOLD));
 		guild_guildaura_refresh(sd,GD_HAWKEYES,guild_checkskill(sd->guild->guild,GD_HAWKEYES));
+	}
+
+	// Complete Faction System
+	if (sd->status.faction_id && faction_check_leader(sd)) {
+		faction_factionaura(sd);
 	}
 }
 
@@ -10428,6 +10477,7 @@ int64 pc_readparam( const map_session_data* sd, int64 type )
 #else
 			val = sd->castrate; break;
 #endif
+		case SP_FACTION: val = sd->status.faction_id; break;
 		case SP_CRIT_DEF_RATE: val = sd->bonus.crit_def_rate; break;
 		case SP_ADD_ITEM_SPHEAL_RATE: val = sd->bonus.itemsphealrate2; break;
 		case SP_GOLDPC_POINTS: val = pc_readreg2(sd, GOLDPC_POINT_VAR); break;
@@ -10622,6 +10672,13 @@ bool pc_setparam(map_session_data *sd,int64 type,int64 val_tmp)
 		return true;
 	case SP_CHARMOVE:
 		sd->status.character_moves = val;
+		return true;
+	case SP_FACTION:
+		ShowMessage("pc_setparam: Setting faction to '%lld'.\n", val);
+		sd->status.faction_id = cap_value(val, 1, MAX_FACTION);
+		status_calc_pc(sd,SCO_NONE);
+		if( map_getmapflag(sd->m, MF_FVF) )
+			pc_setpos(sd, sd->mapindex, sd->x, sd->y, CLR_RESPAWN);
 		return true;
 	case SP_CHARRENAME:	
 		sd->status.rename = val;
@@ -14854,6 +14911,13 @@ void pc_scdata_received(map_session_data *sd) {
 	}
 
 	sd->state.pc_loaded = true;
+
+	#ifdef FACTION_ICONS
+		faction_effect_icon(sd);
+	#endif
+	#ifdef FACTION_RACE_ICONS
+		faction_race_effect_icon(sd);
+	#endif
 
 	if (sd->state.connect_new == 0 && sd->fd) { // Character already loaded map! Gotta trigger LoadEndAck manually.
 		sd->state.connect_new = 1;

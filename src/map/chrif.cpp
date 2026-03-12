@@ -294,6 +294,8 @@ int32 chrif_save(map_session_data *sd, int32 flag) {
 
 	chrif_bsdata_save(sd, ((flag&CSAVE_QUITTING) && !(flag&CSAVE_AUTOTRADE)));
 
+	pc_setreg2(sd, "#factionpts", sd->faction_points);
+
 	if (sd->storage.dirty)
 		storage_storagesave(sd);
 	if (flag&CSAVE_INVENTORY)

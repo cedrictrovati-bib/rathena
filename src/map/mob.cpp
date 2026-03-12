@@ -490,6 +490,10 @@ mob_data* mob_spawn_dataset(struct spawn_data *data)
 	md->skill_idx = -1;
 	md->centerX = data->x;
 	md->centerY = data->y;
+
+	if (data->faction_id)
+		md->faction_id = data->faction_id;
+
 	status_set_viewdata(md, md->mob_id);
 	unit_dataset(md);
 
@@ -729,10 +733,11 @@ int32 mob_once_spawn(map_session_data* sd, int16 m, int16 x, int16 y, const char
 /*==========================================
  * Spawn mobs in the specified area.
  *------------------------------------------*/
-int32 mob_once_spawn_area(map_session_data* sd, int16 m, int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int32 mob_id, int32 amount, const char* event, uint32 size, enum mob_ai ai)
+int mob_once_spawn_area(map_session_data* sd, int16 m, int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int mob_id, int amount, const char* event, unsigned int size, enum mob_ai ai, int32 faction_id)
 {
 	int32 i, max, id = 0;
 	int32 lx = -1, ly = -1;
+	struct mob_data* md = NULL;
 
 	if (m < 0 || amount <= 0)
 		return 0; // invalid input
@@ -776,6 +781,10 @@ int32 mob_once_spawn_area(map_session_data* sd, int16 m, int16 x0, int16 y0, int
 		ly = y;
 
 		id = mob_once_spawn(sd, m, x, y, mobname, mob_id, 1, event, size, ai);
+		if( faction_id && (md = (TBL_MOB*)map_id2bl(id)) ) {
+			md->faction_id = faction_id;
+			clif_spawn(md);
+		}
 	}
 
 	return id; // id of last spawned mob
@@ -1328,6 +1337,9 @@ static int32 mob_ai_sub_hard_activesearch(block_list *bl,va_list ap)
 		return 0;
 
 	if ((mode&MD_TARGETWEAK) && status_get_lv(bl) >= md->level-5)
+		return 0;
+
+	if (md->faction_id && !map_getmapflag(bl->m, MF_FVF) && !(status_get_mode(md) & MD_AGGRESSIVE))
 		return 0;
 
 	if(battle_check_target(md,bl,BCT_ENEMY)<=0)
@@ -2021,7 +2033,7 @@ static bool mob_ai_sub_hard(mob_data *md, t_tick tick)
 		}
 	}
 
-	if ((mode&MD_AGGRESSIVE && (!tbl || slave_lost_target)) || md->state.skillstate == MSS_FOLLOW)
+	if (((mode & MD_AGGRESSIVE || md->faction_id) && (!tbl || slave_lost_target)) || md->state.skillstate == MSS_FOLLOW)
 	{
 		int32 prev_id = md->target_id;
 		map_foreachinallrange (mob_ai_sub_hard_activesearch, md, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
@@ -3994,6 +4006,7 @@ int32 mob_summonslave(mob_data *md2,int32 *value,int32 amount,uint16 skill_id)
 	data.num = 1;
 	data.state.size = md2->special_state.size;
 	data.state.ai = md2->special_state.ai;
+	data.faction_id = md2->faction_id;
 
 	if(mobdb_checkid(value[0]) == 0)
 		return 0;
@@ -4121,6 +4134,9 @@ static block_list *mob_getfriendhprate(mob_data *md,int64 min_rate,int64 max_rat
 	if (md->special_state.ai) //Summoned creatures. [Skotlex]
 		type = BL_PC;
 
+	if (md->faction_id)
+		type = BL_CHAR;
+
 	map_foreachinallrange(mob_getfriendhprate_sub, md, 8, type,md,min_rate,max_rate,&fr);
 	return fr;
 }
@@ -4196,9 +4212,15 @@ int32 mob_getfriendstatus_sub( block_list *bl, va_list ap ){
 mob_data *mob_getfriendstatus(mob_data *md,int64 cond1,int64 cond2)
 {
 	mob_data* fr = nullptr;
+	int type = BL_MOB;
 	nullpo_ret(md);
 
 	map_foreachinallrange(mob_getfriendstatus_sub, md, 8,BL_MOB, md,cond1,cond2,&fr);
+
+	if( md->faction_id )
+		type = BL_CHAR;
+
+	map_foreachinallrange(mob_getfriendstatus_sub, md, 8,type, md,cond1,cond2,&fr);	
 	return fr;
 }
 

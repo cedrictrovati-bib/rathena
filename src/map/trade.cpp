@@ -13,6 +13,7 @@
 #include "battle.hpp"
 #include "chrif.hpp"
 #include "clif.hpp"
+#include "faction.hpp"
 #include "intif.hpp"
 #include "itemdb.hpp"
 #include "log.hpp"
@@ -68,6 +69,18 @@ void trade_traderequest(map_session_data *sd, map_session_data *target_sd)
 	if (target_sd->trade_partner.id != 0) {
 		clif_traderesponse(*sd, TRADE_ACK_FAILED); // person is in another trade
 		return;
+	}
+
+	if( sd->status.faction_id && target_sd->status.faction_id )
+	{
+		if( battle_config.faction_trade_settings == 1 && !faction_check_alliance(sd,target_sd) )
+		{
+			clif_displaymessage(sd->fd, msg_txt(sd,4054));
+			return;
+		} else if( !battle_config.faction_trade_settings && sd->status.faction_id != target_sd->status.faction_id ) {
+			clif_displaymessage(sd->fd, msg_txt(sd,4053));
+			return;
+		}
 	}
 
 	if (!pc_can_give_items(sd) || !pc_can_give_items(target_sd)) { // check if both GMs are allowed to trade

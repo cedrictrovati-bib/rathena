@@ -43,6 +43,7 @@
 #include "clif.hpp"
 #include "date.hpp" // date type enum, date_get()
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "instance.hpp"
@@ -9028,6 +9029,7 @@ BUILDIN_FUNC(readparam)
  *	3 : account_id
  *	4 : bg_id
  *	5 : clan_id
+ *	6 : faction_id
  *------------------------------------------*/
 BUILDIN_FUNC(getcharid)
 {
@@ -9048,6 +9050,7 @@ BUILDIN_FUNC(getcharid)
 	case 3: script_pushint(st, sd->status.account_id); break;
 	case 4: script_pushint(st, sd->bg_id); break;
 	case 5: script_pushint(st, sd->status.clan_id); break;
+	case 6: script_pushint(st, sd->status.faction_id); break;
 	default:
 		ShowError("buildin_getcharid: invalid parameter (%d).\n", num);
 		script_pushint(st, 0);
@@ -9064,6 +9067,7 @@ BUILDIN_FUNC(getnpcid)
 {
 	int32 num = script_getnum(st, 2);
 	npc_data* nd = nullptr;
+	struct block_list* bl = nullptr;
 
 	if (script_hasdata(st, 3))
 	{// unique npc name
@@ -9076,9 +9080,14 @@ BUILDIN_FUNC(getnpcid)
 	}
 
 	switch (num) {
-	case 0:
-		script_pushint(st, nd ? nd->id : st->oid);
-		break;
+		case 0:
+			script_pushint(st, nd ? nd->id : st->oid);
+			break;
+		case 1:
+			if( nd == NULL )
+				bl = map_id2bl(st->oid);
+			script_pushint(st, nd ? nd->faction_id : ((TBL_NPC*)bl)->faction_id);
+			break;
 	default:
 		ShowError("buildin_getnpcid: invalid parameter (%d).\n", num);
 		script_pushint(st, 0);
@@ -9376,6 +9385,15 @@ BUILDIN_FUNC(strcharinfo)
 	case 3:
 		script_pushconststr(st, map_getmapdata(sd->m)->name);
 		break;
+	case 4:
+		{
+			std::shared_ptr<s_faction_db> fdb;
+			if( ( fdb = faction_db.find(sd->status.faction_id) ) != NULL )
+				script_pushstrcopy(st,fdb->pl_name.c_str());
+			else
+				script_pushconststr(st,"");
+			break;
+		}
 	default:
 		ShowWarning("buildin_strcharinfo: unknown parameter.\n");
 		script_pushconststr(st, "");
@@ -11597,7 +11615,7 @@ BUILDIN_FUNC(areamonster)
 	TBL_MOB* md;
 
 	for (i = 0; i < amount; i++) { //not optimised
-		int32 mobid = mob_once_spawn_area(sd, m, x0, y0, x1, y1, str, class_, 1, event, size, ai);
+		int32 mobid = mob_once_spawn_area(sd, m, x0, y0, x1, y1, str, class_, 1, event, size, ai, 0);
 
 		if (mobid > 0) {
 			md = map_id2md(mobid);
@@ -27208,6 +27226,670 @@ BUILDIN_FUNC(openstylist) {
 #endif
 }
 
+/**
+ * Complete Faction System
+ * factioninfo(<Faction ID>,<Type>[,<Val>]);
+ **/
+BUILDIN_FUNC(factioninfo)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	std::string alliances,auras;
+	int faction_id, type, val = 0;
+
+	faction_id = script_getnum(st,2);
+
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("factioninfo: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	type = script_getnum(st,3);
+
+	if( script_hasdata(st,4) )
+		val = script_getnum(st,4);
+
+	switch(type)
+	{
+		default: script_pushstrcopy(st,fdb->name.c_str());		break;	// Faction's name
+		case 1: script_pushstrcopy(st,fdb->pl_name.c_str());	break;	// Player's name
+		case 2: script_pushstrcopy(st,fdb->map.c_str());		break;	// Location
+		case 3: script_pushint(st,fdb->x);				break;	// Location X
+		case 4: script_pushint(st,fdb->y);				break;	// Location Y
+		case 5: script_pushint(st,fdb->race);			break;	// Race
+		case 6: script_pushint(st,fdb->ele);			break;	// Element
+		case 7: script_pushint(st,fdb->ele_lvl);		break;	// Element lvl
+		case 8: script_pushint(st,fdb->size);			break;	// Size
+		case 9: script_pushint(st,fdb->ccolor);			break;	// Clothes Color
+		case 10: script_pushint(st,fdb->hcolor);			break;	// Hair Color
+		case 11: script_pushint(st,fdb->hstyle);			break;	// Hair Style
+		case 12: script_pushint(st,fdb->voting_active);	break;	// Voting State
+		case 13:
+			for (auto it = fdb->alliance_ids.begin(); it != fdb->alliance_ids.end(); ++it){
+				if(it==fdb->alliance_ids.begin())
+					alliances = std::to_string(*it);
+				else
+					alliances = alliances + ":"+std::to_string(*it);
+			}
+			if(!alliances.empty())
+				script_pushstrcopy(st, alliances.c_str());
+			else
+				script_pushconststr(st,"null");
+			break;
+		case 14:
+			for (int i = 0; i < MAX_AURA_EFF; i++){
+				if(i == 0 && fdb->aura[i])
+					auras = std::to_string(fdb->aura[i]);
+				else if(fdb->aura[i])
+					auras = auras + ":"+std::to_string(fdb->aura[i]);
+				else
+					break;
+			}
+			if(!auras.empty())
+				script_pushstrcopy(st, auras.c_str());
+			else
+				script_pushconststr(st,"null");
+			break;
+		case 15: script_pushstrcopy(st,fdb->rp_race.c_str());		break;	// RP Race
+	}
+
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * votinginfo(<Faction ID>);
+ **/
+BUILDIN_FUNC(votinginfo)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id;
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("votinginfo: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	faction_voting_info(faction_id);
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * setfaction(<Faction ID>[,<Char ID>]);
+ **/
+BUILDIN_FUNC(setfaction)
+{
+	TBL_PC* sd = NULL;
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, char_id;
+
+	if( script_hasdata(st,3) )
+	{
+		char_id = script_getnum(st,3);
+		if( ( sd = map_charid2sd(char_id) ) == NULL )
+		{
+			ShowError("setfaction: No such character (char_id=%d).\n", char_id);
+			script_pushnil(st);
+			return 1;
+		}
+	} else {
+		if( !script_rid2sd(sd) )
+		{
+			script_pushnil(st);
+			return 0;
+		}
+	}
+
+	if(sd->status.faction_id)
+		channel_pcquit(sd,8);
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("setfaction: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	sd->status.faction_id = faction_id;
+	status_calc_pc(sd,SCO_NONE);
+
+	#ifdef FACTION_ICONS
+	faction_effect_icon(sd);
+	#endif
+	#ifdef FACTION_RACE_ICONS
+	faction_race_effect_icon(sd);
+	#endif
+
+	#ifdef FUNCTORAURA
+	if( fdb->aura_data != 0){
+		pc_setglobalreg(sd, add_str("AURA_DATA"), fdb->aura_data);
+		pc_setglobalreg(sd, add_str("SHOW_AURAS_MODE"), 0)
+		sd->aura_data = fdb->aura_data;
+		clif_send_aura(&sd->bl, sd->aura_data, AREA);
+	}
+	#endif
+
+	#ifdef FUNCTORNICK
+	if(fdb->color_nicks_group_id){
+		pc_setglobalreg(sd, add_str("CN_GROUP_ID"), fdb->color_nicks_group_id);
+		sd->color_nicks_group_id = fdb->color_nicks_group_id;
+		clif_send_colornicks(sd);
+	}
+	#endif
+
+	if( channel_config.faction_tmpl.opt&CHAN_OPT_AUTOJOIN )
+		if( fdb && channel_config.faction_tmpl.name[0] )
+			channel_fjoin(sd,1);
+
+	if( map_getmapflag(sd->m, MF_FVF) )
+		pc_setpos(sd, sd->mapindex, sd->x, sd->y, CLR_RESPAWN);
+
+	return 0;
+}
+/**
+ * Complete Faction System
+ * setfactionleader(<Faction ID>,<Char ID>);
+ **/
+BUILDIN_FUNC(setfactionleader)
+{
+	TBL_PC* sd;
+	char out[100];
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, char_id;
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("setfactionleader: Invalid faction id %d \n",faction_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	char_id = script_getnum(st,3);
+	if( ( sd = map_charid2sd(char_id) ) == NULL )
+	{
+		ShowError("setfactionleader: No such character (char_id=%d).\n", char_id);
+		script_pushnil(st);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	if( sd->status.faction_id != faction_id )
+	{
+		ShowError("setfactionleader: Character %d not in faction %d.\n", char_id, faction_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	fdb->leader_id = char_id;
+	sprintf(out, "$faction_leader_id_%d",faction_id);
+	mapreg_setreg(add_str(out), char_id);
+
+	faction_factionaura(sd);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * Complete Faction System
+ * relicadd(<Faction ID>,<Item ID>,<Slot>);
+ **/
+BUILDIN_FUNC(relicadd)
+{
+	std::shared_ptr<item_data> item_data = NULL;
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, item, slot;
+	char out[100];
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("relicadd: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	item = script_getnum(st,3);
+	if( (item_data = item_db.find(item)) == NULL )
+	{
+		ShowWarning("relicadd: Invalid item id %d \n",item);
+		return 0;
+	}
+
+	slot = script_getnum(st,4);
+	if( slot < 0 || slot >= MAX_RELIC )
+	{
+		ShowWarning("relicadd: Invalid relic slot %d \n",slot);
+		return 0;
+	}
+
+	fdb->relic[slot].item_id = item_data->nameid;
+	sprintf(out, "$faction_relics_%d",faction_id);
+	mapreg_setreg(reference_uid(add_str(out), slot), item_data->nameid);
+	map_foreachpc(faction_relic_change_sub, faction_id);
+	script_pushint(st,1);
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * relicgetinfo(<Faction ID>,<Slot>);
+ **/
+BUILDIN_FUNC(relicgetinfo)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, slot;
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("relicgetinfo: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	slot = script_getnum(st,3);
+	if( slot < 0 || slot >= MAX_RELIC )
+	{
+		ShowWarning("relicgetinfo: Invalid relic slot %d \n",slot);
+		return 0;
+	}
+
+	script_pushint(st,fdb->relic[slot].item_id);
+
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * relicactivate(<Faction ID>,<Slot>,<Val>);
+ **/
+BUILDIN_FUNC(relicactivate)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, slot;
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("relicactivate: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	slot = script_getnum(st,3);
+	if( slot < 0 || slot >= MAX_RELIC )
+	{
+		ShowWarning("relicactivate: Invalid relic slot %d \n",slot);
+		return 0;
+	}
+
+	fdb->relic[slot].active = script_getnum(st,4);
+	map_foreachpc(faction_relic_change_sub, faction_id);
+	script_pushint(st,1);
+
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * relicdel(<Faction ID>,<Slot>);
+ **/
+BUILDIN_FUNC(relicdel)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id, slot;
+
+	faction_id = script_getnum(st,2);
+	if( (fdb = faction_db.find(faction_id)) == nullptr )
+	{
+		ShowWarning("relicdel: Invalid faction id %d \n",faction_id);
+		return 0;
+	}
+
+	slot = script_getnum(st,3);
+	if( slot < 0 || slot >= MAX_RELIC )
+	{
+		ShowWarning("relicdel: Invalid relic slot %d \n",slot);
+		return 0;
+	}
+
+	fdb->relic[slot].item_id = 0;
+	map_foreachpc(faction_relic_change_sub, faction_id);
+	script_pushint(st,1);
+
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * vote(<Char ID>[,<Amount of Votes>]);
+ **/
+BUILDIN_FUNC(vote)
+{
+	TBL_PC *sd = NULL, *tsd = NULL;
+	std::shared_ptr<s_faction_db> fdb;
+	int char_id, votes;
+
+	if( !script_rid2sd(sd) )
+	{
+		script_pushnil(st);
+		return 0;
+	}
+
+	if( (fdb = faction_db.find(sd->status.faction_id)) == nullptr )
+	{
+		ShowWarning("vote: Invalid faction id %d\n",sd->status.faction_id);
+		return 0;
+	}
+
+	char_id = script_getnum(st,2);
+	if( (tsd = map_charid2sd(char_id)) == NULL )
+	{
+		ShowError("vote: No such character (char_id=%d).\n", char_id);
+		script_pushnil(st);
+		return 1;
+	}
+
+	if( sd->status.faction_id != tsd->status.faction_id )
+	{
+		ShowError("vote: Different factions (sd=%d, tsd=%d).\n", sd->status.faction_id, tsd->status.faction_id);
+		return 1;
+	}
+
+	if( script_hasdata(st,3) )
+		votes = script_getnum(st,3);
+	else
+		votes = 1;
+
+	faction_voting_add(sd, tsd, votes);
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * addvotes(<Char ID>[,<Amount of Votes>]);
+ **/
+BUILDIN_FUNC(addvotes)
+{
+	TBL_PC *tsd = NULL;
+	std::shared_ptr<s_faction_db> fdb;
+	int char_id, votes;
+
+	char_id = script_getnum(st,2);
+	if( (tsd = map_charid2sd(char_id)) == NULL )
+	{
+		ShowError("addvotes: No such character (char_id=%d).\n", char_id);
+		script_pushnil(st);
+		return 1;
+	}
+
+	if( (fdb = faction_db.find(tsd->status.faction_id)) == nullptr )
+	{
+		ShowWarning("addvotes: Invalid faction id %d\n",tsd->status.faction_id);
+		return 0;
+	}
+
+	if( script_hasdata(st,3) )
+		votes = script_getnum(st,3);
+	else
+		votes = 1;
+
+	faction_voting_add(NULL, tsd, votes);
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * votingstart([<Faction ID>]);
+ **/
+BUILDIN_FUNC(votingstart)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id = 0, i;
+
+	if( script_hasdata(st,2) )
+	{
+		faction_id = script_getnum(st,2);
+		if( (fdb = faction_db.find(faction_id)) == nullptr )
+		{
+			ShowWarning("votingstart: Invalid faction id %d\n",faction_id);
+			return 0;
+		}
+		faction_voting_start(faction_id);
+	} else {
+
+		for( i = 0; i < MAX_FACTION; i++ )
+			if( (fdb = faction_db.find(i)) != nullptr )
+				faction_voting_start(i);
+	}
+	npc_event_doall("OnVotingStart");
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * votingstop([<Faction ID>]);
+ **/
+BUILDIN_FUNC(votingstop)
+{
+	std::shared_ptr<s_faction_db> fdb;
+	int faction_id = 0, i;
+
+	if( script_hasdata(st,2) )
+	{
+		faction_id = script_getnum(st,2);
+		if( (fdb = faction_db.find(faction_id)) == nullptr )
+		{
+			ShowWarning("votingstop: Invalid faction id %d\n",faction_id);
+			return 0;
+		}
+		faction_voting_finish(faction_id);
+	} else {
+
+		for( i = 0; i < MAX_FACTION; i++ )
+			if( (fdb = faction_db.find(i)) != nullptr )
+				faction_voting_finish(i);
+	}
+
+	npc_event_doall("OnVotingEnd");
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * factionmonster(<faction ID>,"<map name>",<x>,<y>,"<name to show>",<mob ID>,<amount>[,"<event label>,<size>,<ai>"]);
+ **/
+BUILDIN_FUNC(factionmonster)
+{
+	int faction_id    = script_getnum(st,2);
+	const char* mapn  = script_getstr(st,3);
+	int x             = script_getnum(st,4);
+	int y             = script_getnum(st,5);
+	const char* str   = script_getstr(st,6);
+	int class_        = script_getnum(st,7);
+	int amount        = script_getnum(st,8);
+	const char* event = "";
+	unsigned int size	= SZ_SMALL;
+	enum mob_ai ai		= AI_NONE;
+
+	map_session_data* sd;
+	int16 m;
+	int i;
+	std::shared_ptr<s_faction_db> fdb;
+	struct mob_data *md = NULL;
+
+	if( script_hasdata(st,9) )
+	{
+		event = script_getstr(st,9);
+		check_event(st, event);
+	}
+
+	if (script_hasdata(st, 10)) {
+		size = script_getnum(st, 10);
+		if (size > SZ_BIG) {
+			ShowWarning("buildin_monster: Attempted to spawn non-existing size %d for monster class %d\n", size, class_);
+			return SCRIPT_CMD_FAILURE;
+		}
+	}
+
+	if (script_hasdata(st, 11)) {
+		ai = static_cast<enum mob_ai>(script_getnum(st, 11));
+		if (ai >= AI_MAX) {
+			ShowWarning("buildin_monster: Attempted to spawn non-existing ai %d for monster class %d\n", ai, class_);
+			return SCRIPT_CMD_FAILURE;
+		}
+	}
+
+	if( class_ >= 0 && !mobdb_checkid(class_) )
+	{
+		ShowWarning("factionmonster: Attempted to spawn non-existing monster class %d\n", class_);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	if( (fdb = faction_db.find(faction_id)) == NULL )
+	{
+		ShowWarning("factionmonster: Invalid faction id %d\n",faction_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	sd = map_id2sd(st->rid);
+
+	if( sd && strcmp(mapn,"this") == 0 )
+		m = sd->m;
+	else
+		m = map_mapname2mapid(mapn);
+
+	for(i = 0; i < amount; i++) { //not optimised
+		md = mob_once_spawn_sub(sd, m, x, y, str, class_, event, size, ai);
+		md->faction_id = faction_id;
+
+		int mobid = mob_spawn(md);
+
+		if (mobid)
+			mapreg_setreg(reference_uid(add_str("$@mobid"), i), mobid);
+	}
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * Complete Faction System
+ * Same as factionmonster but randomize location in x0,x1,y0,y1 area
+ **/
+BUILDIN_FUNC(areafactionmonster)
+{
+	int faction_id    	= script_getnum(st,2);
+	const char *mapn	= script_getstr(st,3);
+	int x0				= script_getnum(st,4);
+	int y0				= script_getnum(st,5);
+	int x1				= script_getnum(st,6);
+	int y1				= script_getnum(st,7);
+	const char *str		= script_getstr(st,8);
+	int class_			= script_getnum(st,9);
+	int amount			= script_getnum(st,10);
+	const char *event	= "";
+	unsigned int size	= SZ_SMALL;
+	enum mob_ai ai		= AI_NONE;
+
+	std::shared_ptr<s_faction_db> fdb;
+	map_session_data* sd;
+	int16 m;
+	int i;
+
+	if (script_hasdata(st,11))
+	{
+		event = script_getstr(st, 11);
+		check_event(st, event);
+	}
+
+	if (script_hasdata(st, 12)) {
+		size = script_getnum(st, 12);
+		if (size > 3) {
+			ShowWarning("buildin_monster: Attempted to spawn non-existing size %d for monster class %d\n", size, class_);
+			return SCRIPT_CMD_FAILURE;
+		}
+	}
+
+	if (script_hasdata(st, 13)) {
+		size = script_getnum(st, 13);
+		if (size > 3) {
+			ShowWarning("buildin_monster: Attempted to spawn non-existing size %d for monster class %d\n", size, class_);
+			return SCRIPT_CMD_FAILURE;
+		}
+	}
+
+	if( (fdb = faction_db.find(faction_id)) == NULL )
+	{
+		ShowWarning("areafactionmonster: Invalid faction id %d\n",faction_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	if (class_ >= 0 && !mobdb_checkid(class_)) {
+		ShowWarning("areafactionmonster: Attempted to spawn non-existing monster class %d\n", class_);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	sd = map_id2sd(st->rid);
+
+	if (sd && strcmp(mapn, "this") == 0)
+		m = sd->m;
+	else
+		m = map_mapname2mapid(mapn);
+
+	for(i = 0; i < amount; i++) { //not optimised
+		int mobid = mob_once_spawn_area(sd, m, x0, y0, x1, y1, str, class_, amount, event, SZ_SMALL, AI_NONE, faction_id);
+
+		if (mobid)
+			mapreg_setreg(reference_uid(add_str("$@mobid"), i), mobid);
+	}
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * Complete Faction System
+ * fvfon("Map"[,Faction ID[,Relic ID]]);
+ **/
+BUILDIN_FUNC(fvfon)
+{
+	const char *str = script_getstr(st,2);
+	int faction_id = 0, relic_id = 0;
+	int16 m;
+
+	if( script_hasdata(st,3) )
+		faction_id = script_getnum(st, 3);
+	if( script_hasdata(st,4) )
+		relic_id = script_getnum(st, 4);
+
+	if( (m = map_mapname2mapid(str)) >= 0 && !map_getmapflag(m, MF_FVF) )
+	{
+		map_setmapflag(m, MF_FVF ,true);
+		map[m].faction.id = faction_id;
+		map[m].faction.relic = relic_id;
+		clif_map_property_mapall(m, MAPPROPERTY_FREEPVPZONE);
+		map_foreachinmap(faction_reload_fvf_sub, m, BL_ALL);
+	}
+	return 0;
+}
+
+/**
+ * Complete Faction System
+ * fvfoff("Map");
+ **/
+BUILDIN_FUNC(fvfoff)
+{
+	int16 m;
+	const char *str = script_getstr(st,2);
+
+	if( (m = map_mapname2mapid(str)) >= 0 && map_getmapflag(m, MF_FVF) )
+	{
+		map_setmapflag(m, MF_FVF ,false);
+		map[m].faction.id = 0;
+		map[m].faction.relic = 0;
+		clif_map_property_mapall(m, MAPPROPERTY_NOTHING);
+		map_foreachinmap(faction_reload_fvf_sub, m, BL_ALL);
+	}
+	return 0;
+}
+
+
 BUILDIN_FUNC(navihide) {
 #ifdef MAP_GENERATOR
 	TBL_NPC* nd;
@@ -28890,6 +29572,25 @@ struct script_function buildin_func[] = {
 
 		BUILDIN_DEF(setinstancevar,"rvi"),
 		BUILDIN_DEF(openstylist, "?"),
+
+		// Complete Faction System
+     	BUILDIN_DEF(factioninfo, "ii?"),
+     	BUILDIN_DEF(setfaction, "i?"),
+     	BUILDIN_DEF(setfactionleader, "ii"),
+     	BUILDIN_DEF(relicadd, "iii"),
+     	BUILDIN_DEF(relicgetinfo, "ii"),
+     	BUILDIN_DEF(relicdel, "ii"),
+     	BUILDIN_DEF(relicactivate, "iii"),
+     	BUILDIN_DEF(votingstart, "?"),
+     	BUILDIN_DEF(votingstop, "?"),
+     	BUILDIN_DEF(vote, "i?"),
+     	BUILDIN_DEF(addvotes, "i?"),
+     	BUILDIN_DEF2(votingstop,"votingend","?"),
+     	BUILDIN_DEF(votinginfo, "i"),
+     	BUILDIN_DEF(factionmonster,"isiisii?"),
+     	BUILDIN_DEF(areafactionmonster,"isiiiisii?"),
+     	BUILDIN_DEF(fvfon,"s?"),
+     	BUILDIN_DEF(fvfoff,"s"),
 
 		// Navigation Generation System
 		BUILDIN_DEF(naviregisterwarp, "ssii"),

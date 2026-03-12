@@ -20,6 +20,7 @@
 #include "battle.hpp"
 #include "chrif.hpp" // charserver_name
 #include "clif.hpp"
+#include "faction.hpp"
 #include "instance.hpp"
 #include "intif.hpp"
 #include "log.hpp"
@@ -388,6 +389,18 @@ bool party_invite( map_session_data& sd, map_session_data *tsd ){
 	}
 
 	int32 i;
+
+	if( sd.status.faction_id && tsd && tsd->status.faction_id )
+	{
+		if( battle_config.faction_party_settings == 1 && !faction_check_alliance(&sd,tsd) )
+		{
+			clif_displaymessage(sd.fd, msg_txt(&sd,4033));
+			return 0;
+		} else if( !battle_config.faction_party_settings && sd.status.faction_id != tsd->status.faction_id ) {
+			clif_displaymessage(sd.fd, msg_txt(&sd,4032));
+			return 0;
+		}
+	}
 
 	// confirm if this player is a party leader
 	ARR_FIND( 0, MAX_PARTY, i, p->data[i].sd == &sd );

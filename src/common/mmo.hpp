@@ -89,7 +89,7 @@ typedef uint32 t_itemid;
 #endif
 #define MAX_FAME 1000000000 ///Max fame points
 #define MAX_CART 100 ///Maximum item in cart
-#define MAX_SKILL 1641 ///Maximum skill can be hold by Player, Homunculus, & Mercenary (skill list) AND skill_db limit
+#define MAX_SKILL 1642 ///Maximum skill can be hold by Player, Homunculus, & Mercenary (skill list) AND skill_db limit
 #define DEFAULT_WALK_SPEED 150 ///Default walk speed (other than NPC)
 #define DEFAULT_NPC_WALK_SPEED 200 ///Default NPC walk speed
 #define MIN_WALK_SPEED 20 ///Min walk speed
@@ -138,6 +138,17 @@ enum e_enchantgrade : uint16{
 	#define MAX_ARMOR_LEVEL 1
 	#define MAX_ENCHANTGRADE ENCHANTGRADE_NONE
 #endif
+
+// Uncomment to enable those Functor functions (you need to have those on client and server)
+///#define FUNCTORAURA
+///#define FUNCTORNICK
+///#define GEPARD
+// Uncomment to add a special aura leader icon, you need to modify things client side too
+//#define FACTION_AURA_ICON
+// Uncomment to add a special icon for each faction
+//#define FACTION_ICONS
+// Uncomment to add a special icon for each faction roleplay race
+//#define FACTION_RACE_ICONS
 
 // for produce
 #define MIN_ATTRIBUTE 0
@@ -615,6 +626,7 @@ struct mmo_charstatus {
 	bool disable_showcostumes;
 	int16 rename;
 
+	int32 faction_id;
 	time_t delete_date;
 	time_t unban_time;
 

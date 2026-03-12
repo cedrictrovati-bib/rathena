@@ -32,6 +32,7 @@
 #include "clif.hpp"
 #include "duel.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "instance.hpp"
@@ -1150,6 +1151,10 @@ ACMD_FUNC(hide)
 			delete_timer( sd->pvp_timer, pc_calc_pvprank_timer );
 			sd->pvp_timer = INVALID_TIMER;
 		}
+
+		clif_clearunit_area(*sd, CLR_OUTSIGHT);
+		map_foreachinrange(faction_aura_clear, sd, AREA_SIZE, BL_PC, sd);
+		clif_refresh(sd);
 	}
 	clif_changeoption(sd);
 
@@ -4671,11 +4676,12 @@ ACMD_FUNC(mapinfo) {
 	char direction[12];
 	int32 i, m_id, chat_num = 0, list = 0, vend_num = 0;
 	uint16 m_index;
-	char mapname[MAP_NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH], atcmd_output2[CHAT_SIZE_MAX];
 
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
+	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
 	memset(mapname, '\0', sizeof(mapname));
 	memset(direction, '\0', sizeof(direction));
 
@@ -4853,6 +4859,20 @@ ACMD_FUNC(mapinfo) {
 		strcat(atcmd_output, "  Leaves |");
 	if (map_getmapflag(m_id, MF_NIGHTENABLED))
 		strcat(atcmd_output, "  Displays Night |");
+	clif_displaymessage(fd, atcmd_output);
+
+	strcpy(atcmd_output, msg_txt(sd, 4018)); // FvF Flags:
+	if (map_getmapflag(m_id, MF_FVF))
+		strcat(atcmd_output, msg_txt(sd, 4010)); // FvF ON |
+	if (mapdata->faction.id) {
+		sprintf(atcmd_output2, msg_txt(sd, 4019), mapdata->faction.id); // Faction ID: %d |
+		strcat(atcmd_output, atcmd_output2);
+		if (mapdata->faction.relic)
+		{
+			sprintf(atcmd_output2, msg_txt(sd, 4041), mapdata->faction.relic); // Relic ID: %d |
+			strcat(atcmd_output, atcmd_output2);
+		}		
+	}
 	clif_displaymessage(fd, atcmd_output);
 
 	strcpy(atcmd_output,msg_txt(sd,1050)); // Other Flags:
@@ -9106,7 +9126,8 @@ ACMD_FUNC(mapflag) {
 												MF_JEXP,
 												MF_BATTLEGROUND,
 												MF_SKILL_DAMAGE,
-												MF_SKILL_DURATION };
+												MF_SKILL_DURATION,
+												MF_FVF };
 
 			if (flag > 0 && util::vector_exists(disabled_mf, mapflag)) {
 				sprintf(atcmd_output,"[ @mapflag ] %s flag cannot be enabled as it requires unique values.", flag_name);
@@ -11251,6 +11272,409 @@ ACMD_FUNC( stylist ){
 #endif
 }
 
+/*==========================================
+ * Complete Faction System
+ * @setfaction #
+ *------------------------------------------*/
+ACMD_FUNC(setfaction)
+{
+	int id = 0;
+
+	id = atoi(message);
+	if (!message || !*message) {
+		clif_displaymessage(fd, msg_txt(sd, 4028)); // Usage: @setfaction <Faction ID>.
+		return -1;
+	}
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(id);
+
+	if (id && (fdb == nullptr)) {
+		clif_displaymessage(fd, msg_txt(sd, 4016)); // Unknown faction ID
+		return -1;
+	}
+
+	if (id && fdb) {
+		sprintf(atcmd_output, msg_txt(sd, 4017), fdb->name.c_str()); // Now you're in faction: %s
+		clif_displaymessage(sd->fd, atcmd_output);
+	}
+	else
+		clif_displaymessage(fd, msg_txt(sd, 4040)); // You're not in a faction now.
+
+	if (sd->status.faction_id)
+		channel_pcquit(sd, 8);
+
+	sd->status.faction_id = id;
+	status_calc_pc(sd, SCO_NONE);
+
+	if (channel_config.faction_tmpl.opt & CHAN_OPT_AUTOJOIN)
+		if (fdb && channel_config.faction_tmpl.name[0])
+			channel_fjoin(sd, 1);
+
+	if (map_getmapflag(sd->m, MF_FVF) && !pc_isdead(sd))
+		pc_setpos(sd, sd->mapindex, sd->x, sd->y, CLR_RESPAWN);
+
+#ifdef FACTION_ICONS
+	faction_effect_icon(sd);
+#endif
+#ifdef FACTION_RACE_ICONS
+	faction_race_effect_icon(sd);
+#endif
+
+#ifdef FUNCTORAURA
+	if (fdb->aura_data != 0) {
+		pc_setglobalreg(sd, add_str("AURA_DATA"), fdb->aura_data);
+		pc_setglobalreg(sd, add_str("SHOW_AURAS_MODE"), 0)
+			sd->aura_data = fdb->aura_data;
+		clif_send_aura(&sd->bl, sd->aura_data, AREA);
+	}
+#endif
+
+#ifdef FUNCTORNICK
+	if (fdb->color_nicks_group_id) {
+		pc_setglobalreg(sd, add_str("CN_GROUP_ID"), fdb->color_nicks_group_id);
+		sd->color_nicks_group_id = fdb->color_nicks_group_id;
+		clif_send_colornicks(sd);
+	}
+#endif
+
+	if (id && faction_check_leader(sd))
+		faction_factionaura(sd);
+
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @reloadfactiondb
+ * Reloading faction_db.txt
+ *------------------------------------------*/
+ACMD_FUNC(reloadfactiondb)
+{
+	nullpo_retr(-1, sd);
+
+	faction_db_reload();
+	clif_displaymessage(fd, msg_txt(sd, 4003)); // Faction system has been reloaded
+
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @fvfon
+ *------------------------------------------*/
+ACMD_FUNC(fvfon)
+{
+	int faction_id = 0, relic_id = 0;
+
+	nullpo_retr(-1, sd);
+
+	if (map_getmapflag(sd->m, MF_FVF)) {
+		clif_displaymessage(fd, msg_txt(sd, 4013)); // FvF is already on
+		return -1;
+	}
+
+	if (message)
+		sscanf(message, "%d %d", &faction_id, &relic_id);
+
+	map[sd->m].faction.id = faction_id;
+	map[sd->m].faction.relic = relic_id;
+
+	map_setmapflag(sd->m, MF_FVF, true);
+	clif_map_property_mapall(sd->m, MAPPROPERTY_AGITZONE);
+	map_foreachinmap(faction_reload_fvf_sub, sd->m, BL_ALL);
+	clif_displaymessage(fd, msg_txt(sd, 4012)); // FvF: On
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @fvfoff
+ *------------------------------------------*/
+ACMD_FUNC(fvfoff)
+{
+	nullpo_retr(-1, sd);
+
+	if (!map_getmapflag(sd->m, MF_FVF)) {
+		clif_displaymessage(fd, msg_txt(sd, 4015)); // FvF is already off
+		return -1;
+	}
+
+	map_setmapflag(sd->m, MF_FVF, false);
+	map[sd->m].faction.id = 0;
+	map[sd->m].faction.relic = 0;
+	clif_map_property_mapall(sd->m, MAPPROPERTY_NOTHING);
+	map_foreachinmap(faction_reload_fvf_sub, sd->m, BL_ALL);
+	clif_displaymessage(fd, msg_txt(sd, 4014)); // FvF: Off
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @home
+ * Teleporting to Faction Location
+ *------------------------------------------*/
+ACMD_FUNC(home)
+{
+	unsigned short mapindex;
+
+	nullpo_retr(-1, sd);
+
+	if (!sd->status.faction_id) {
+		clif_displaymessage(fd, msg_txt(sd, 4007)); // You're not in faction.
+		return -1;
+	}
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+
+	if (fdb == nullptr) {
+		clif_displaymessage(fd, msg_txt(sd, 4016)); // Unknown faction ID
+		return -1;
+	}
+
+	if (fdb->map.empty()) {
+		clif_displaymessage(fd, msg_txt(sd, 4029)); // Your Faction haven't home location.
+		return -1;
+	}
+
+	if (!(mapindex = mapindex_name2id(fdb->map.c_str()))) {
+		clif_displaymessage(fd, msg_txt(sd, 4029)); // Your Faction haven't home location.
+		return -1;
+	}
+
+	if (pc_setpos(sd, mapindex, fdb->x, fdb->y, CLR_TELEPORT) != 0) {
+		clif_displaymessage(fd, msg_txt(sd, 1)); // Map not found.
+		return -1;
+	}
+
+	clif_displaymessage(fd, msg_txt(sd, 0)); // Warped.
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @factionleader
+ * Set Character the faction leader
+ *------------------------------------------*/
+ACMD_FUNC(factionleader)
+{
+	nullpo_retr(-1, sd);
+
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	if (!sd->status.faction_id) {
+		clif_displaymessage(fd, msg_txt(sd, 4007)); // You're not in faction.
+		return -1;
+	}
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+
+	if (fdb == nullptr) {
+		clif_displaymessage(fd, msg_txt(sd, 4016)); // Unknown faction ID
+		return -1;
+	}
+
+	faction_change_leader(sd->status.faction_id, sd->status.char_id);
+
+	sprintf(atcmd_output, msg_txt(sd, 4021), sd->status.faction_id, fdb->name.c_str(), sd->status.name); // Leader of Faction %d:%s is now '%s'
+	clif_displaymessage(fd, atcmd_output);
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @vote (<Player's Name>)
+ * Voting for Faction Leader
+ *------------------------------------------*/
+ACMD_FUNC(vote)
+{
+	struct voting_data* vdb;
+	char charname[NAME_LENGTH];
+	map_session_data* ssd = NULL;
+
+	nullpo_retr(-1, sd);
+
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+
+	if (fdb == nullptr) {
+		clif_displaymessage(fd, msg_txt(sd, 4016)); // Unknown faction ID
+		return -1;
+	}
+
+	if (!fdb->voting_active) {
+		clif_displaymessage(fd, msg_txt(sd, 4023)); // Voting for your faction leader not started.
+		return -1;
+	}
+
+	if ((vdb = voting_search(sd->status.char_id)) != NULL && vdb->voted) {
+		clif_displaymessage(fd, msg_txt(sd, 4024)); // You already voted.
+		return -1;
+	}
+
+	if (!message || !*message || (
+		sscanf(message, "\"%23[^\"]\"", charname) < 1 &&
+		sscanf(message, "%23s", charname) < 1)
+		) {
+		clif_displaymessage(fd, msg_txt(sd, 4025)); // Usage: @vote <Character Name>.
+		return -1;
+	}
+
+	if ((ssd = map_nick2sd(charname, true)) == NULL) {
+		sprintf(atcmd_output, msg_txt(sd, 1389), command); // %s failed. Player not found.
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
+	}
+
+	if (sd->status.faction_id != ssd->status.faction_id) {
+		clif_displaymessage(fd, msg_txt(sd, 4026)); // Player is not in your faction.
+		return -1;
+	}
+
+	if (sd == ssd) {
+		clif_displaymessage(fd, msg_txt(sd, 4027)); // You cannot vote for yourself.
+		return -1;
+	}
+
+
+	faction_voting_add(sd, ssd, 1);
+	sprintf(atcmd_output, msg_txt(sd, 4030), ssd->status.name); // You voted for '%s' as a faction leader.
+	clif_displaymessage(fd, atcmd_output);
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @factionmonster <Faction ID> <...>
+ *------------------------------------------*/
+ACMD_FUNC(factionmonster)
+{
+	char name[NAME_LENGTH], monster[NAME_LENGTH], eventname[EVENT_NAME_LENGTH] = "";
+	int number = 0, count, faction_id, mob_id, i, range;
+	short mx, my;
+	struct mob_data* md;
+	nullpo_retr(-1, sd);
+
+	memset(name, '\0', sizeof(name));
+	memset(monster, '\0', sizeof(monster));
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, msg_txt(sd, 4022)); // Give the faction ID, display name or monster name/id please.
+		return -1;
+	}
+	if (sscanf(message, "%d \"%23[^\"]\" %23s %d", &faction_id, name, monster, &number) > 2 ||
+		sscanf(message, "%d %23s \"%23[^\"]\" %d", &faction_id, monster, name, &number) > 2) {
+		//All data can be left as it is.
+	}
+	else if ((count = sscanf(message, "%d %23s %d %23s", &faction_id, monster, &number, name)) > 2) {
+		//Here, it is possible name was not given and we are using monster for it.
+		if (count < 3) //Blank mob's name.
+			name[0] = '\0';
+	}
+	else if (sscanf(message, "%d %23s %23s %d", &faction_id, name, monster, &number) > 2) {
+		//All data can be left as it is.
+	}
+	else if (sscanf(message, "%d %23s", &faction_id, monster) > 1) {
+		//As before, name may be already filled.
+		name[0] = '\0';
+	}
+	else {
+		clif_displaymessage(fd, msg_txt(sd, 4022)); // Give the faction ID, display name or monster name/id please.
+		return -1;
+	}
+
+	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
+		mob_id = mobdb_checkid(atoi(monster));
+
+	if (mob_id == 0) {
+		clif_displaymessage(fd, msg_txt(sd, 40)); // Invalid monster ID or name.
+		return -1;
+	}
+
+	if (mob_id == MOBID_EMPERIUM) {
+		clif_displaymessage(fd, msg_txt(sd, 83)); // Monster 'Emperium' cannot be spawned.
+		return -1;
+	}
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_id);
+
+	if (fdb == nullptr) {
+		clif_displaymessage(fd, msg_txt(sd, 4016)); // Unknown faction ID
+		return -1;
+	}
+
+	if (number <= 0)
+		number = 1;
+
+	if (!name[0])
+		strcpy(name, "--ja--");
+
+	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
+	if (battle_config.atc_spawn_quantity_limit && number > battle_config.atc_spawn_quantity_limit)
+		number = battle_config.atc_spawn_quantity_limit;
+
+	if (battle_config.etc_log)
+		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, sd->x, sd->y);
+
+	count = 0;
+	range = (int)sqrt((float)number) + 2; // calculation of an odd number (+ 4 area around)
+	for (i = 0; i < number; i++) {
+		map_search_freecell(sd, 0, &mx, &my, range, range, 0);
+		if ((md = mob_once_spawn_sub(sd, sd->m, mx, my, name, mob_id, eventname, SZ_SMALL, AI_NONE))) {
+			md->faction_id = faction_id;
+			mob_spawn(md);
+			count++;
+		}
+	}
+
+	if (count != 0)
+		if (number == count)
+			clif_displaymessage(fd, msg_txt(sd, 39)); // All monster summoned!
+		else {
+			sprintf(atcmd_output, msg_txt(sd, 240), count); // %d monster(s) summoned!
+			clif_displaymessage(fd, atcmd_output);
+		}
+	else {
+		clif_displaymessage(fd, msg_txt(sd, 40)); // Invalid monster ID or name.
+		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Complete Faction System
+ * @factionannounce <message>
+ * Send an announce to your faction being the faction leader
+ *------------------------------------------*/
+ACMD_FUNC(factionannounce)
+{
+	nullpo_retr(-1, sd);
+
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+
+	if (fdb == nullptr) {
+		clif_displaymessage(sd->fd, msg_txt(sd, 4007)); // You're not in faction.
+		return -1;
+	}
+
+	if (sd->status.char_id != fdb->leader_id) {
+		clif_displaymessage(fd, msg_txt(sd, 4039)); // You're not a Faction Leader.
+		return -1;
+	}
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, msg_txt(sd, 4038)); // Usage: @factionannounce <message>.
+		return -1;
+	}
+
+	sprintf(atcmd_output, msg_txt(sd, 4020), sd->status.name, message); // [Faction Leader] %s : %s
+	clif_broadcast2(sd, atcmd_output, strlen(atcmd_output) + 1, battle_config.chat_leader, 0x190, 12, 0, 0, FACTION);
+
+	return 0;
+}
+
 /**
  * Add fame point(s) to a player
  * Usage: @addfame <amount>
@@ -11567,6 +11991,17 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(raise),
 		ACMD_DEF(raisemap),
 		ACMD_DEFR(kick,ATCMD_NOAUTOTRADE), // + right click menu for GM "(name) force to quit"
+		// Complete Faction System
+		ACMD_DEF(setfaction),
+		ACMD_DEF(reloadfactiondb),
+		ACMD_DEF(fvfon),
+		ACMD_DEF(fvfoff),
+		ACMD_DEF(home),
+		ACMD_DEF(vote),
+		ACMD_DEF(factionmonster),
+		ACMD_DEF(factionleader),
+		ACMD_DEF(factionannounce),
+		// Complete Faction System
 		ACMD_DEF(kickall),
 		ACMD_DEF(allskill),
 		ACMD_DEF(questskill),

@@ -22,6 +22,7 @@
 #include "chrif.hpp"
 #include "clif.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "log.hpp"
@@ -2085,6 +2086,45 @@ bool battle_can_hit_bg_target(block_list *src, block_list *bl, uint16 skill_id, 
 }
 
 /**
+ * Calculates FVF related damage adjustments.
+ * @param src
+ * @param bl
+ * @param damage
+ * @param skill_id
+ * @param flag
+ * @return damage
+ */
+int64 battle_calc_fvf_damage(struct block_list *src, struct block_list *bl, int64 damage, uint16 skill_id, int flag)
+{
+	if( !damage )
+		return 0;
+
+	if (!battle_can_hit_bg_target(src, bl, skill_id, flag))
+		return 0;
+
+	if(skill_get_inf2(skill_id, INF2_IGNOREBGREDUCTION))
+		return damage; //skill that ignore bg map reduction
+
+	if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
+		if( flag&BF_WEAPON )
+			damage = damage * battle_config.fvf_weapon_damage_rate / 100;
+		if( flag&BF_MAGIC )
+			damage = damage * battle_config.fvf_magic_damage_rate / 100;
+		if(	flag&BF_MISC )
+			damage = damage * battle_config.fvf_misc_damage_rate / 100;
+	} else { //Normal attacks get reductions based on range.
+		if( flag&BF_SHORT )
+			damage = damage * battle_config.fvf_short_damage_rate / 100;
+		if( flag&BF_LONG )
+			damage = damage * battle_config.fvf_long_damage_rate / 100;
+	}
+
+	damage = i64max(damage,1); //min 1 damage
+	return damage;
+}
+
+
+/**
  * Calculates BG related damage adjustments.
  * @param src
  * @param bl
@@ -2782,7 +2822,7 @@ static int32 battle_skill_damage_skill(block_list *src, block_list *target, uint
 
 	map_data *mapdata = map_getmapdata(src->m);
 
-	if ((damage->map&1 && (!mapdata->getMapFlag(MF_PVP) && !mapdata_flag_gvg2(mapdata) && !mapdata->getMapFlag(MF_BATTLEGROUND) && !mapdata->getMapFlag(MF_SKILL_DAMAGE) && !mapdata->getMapFlag(MF_RESTRICTED))) ||
+	if ((damage->map & 1 && (!mapdata->getMapFlag(MF_PVP) && !mapdata_flag_gvg2(mapdata) && !mapdata->getMapFlag(MF_BATTLEGROUND) && !mapdata->getMapFlag(MF_FVF) && !mapdata->getMapFlag(MF_SKILL_DAMAGE) && !mapdata->getMapFlag(MF_RESTRICTED))) ||
 		(damage->map&2 && mapdata->getMapFlag(MF_PVP)) ||
 		(damage->map&4 && mapdata_flag_gvg2(mapdata)) ||
 		(damage->map&8 && mapdata->getMapFlag(MF_BATTLEGROUND)) ||
@@ -5296,6 +5336,8 @@ static void battle_calc_attack_gvg_bg(struct Damage* wd, block_list *src,block_l
 				wd->damage=battle_calc_gvg_damage(src,target,wd->damage,skill_id,wd->flag);
 			else if( mapdata->getMapFlag(MF_BATTLEGROUND) )
 				wd->damage=battle_calc_bg_damage(src,target,wd->damage,skill_id,wd->flag);
+			else if (mapdata->getMapFlag(MF_FVF))
+				wd->damage = battle_calc_fvf_damage(src, target, wd->damage, skill_id, wd->flag);
 		}
 		else if(!wd->damage) {
 			wd->damage2 = battle_calc_damage(src,target,wd,wd->damage2,skill_id,skill_lv);
@@ -5303,6 +5345,8 @@ static void battle_calc_attack_gvg_bg(struct Damage* wd, block_list *src,block_l
 				wd->damage2 = battle_calc_gvg_damage(src,target,wd->damage2,skill_id,wd->flag);
 			else if( mapdata->getMapFlag(MF_BATTLEGROUND) )
 				wd->damage2 = battle_calc_bg_damage(src,target,wd->damage2,skill_id,wd->flag);
+			else if (mapdata->getMapFlag(MF_FVF))
+				wd->damage2 = battle_calc_fvf_damage(src, target, wd->damage2, skill_id, wd->flag);
 		}
 		else {
 			wd->damage = battle_calc_damage(src, target, wd, wd->damage, skill_id, skill_lv);
@@ -5312,6 +5356,10 @@ static void battle_calc_attack_gvg_bg(struct Damage* wd, block_list *src,block_l
 				wd->damage2 = battle_calc_gvg_damage(src, target, wd->damage2, skill_id, wd->flag);
 			}
 			else if (mapdata->getMapFlag(MF_BATTLEGROUND)) {
+				wd->damage = battle_calc_bg_damage(src, target, wd->damage, skill_id, wd->flag);
+				wd->damage2 = battle_calc_bg_damage(src, target, wd->damage2, skill_id, wd->flag);
+			}
+			else if (mapdata->getMapFlag(MF_FVF)) {
 				wd->damage = battle_calc_bg_damage(src, target, wd->damage, skill_id, wd->flag);
 				wd->damage2 = battle_calc_bg_damage(src, target, wd->damage2, skill_id, wd->flag);
 			}
@@ -6668,6 +6716,8 @@ struct Damage battle_calc_magic_attack(block_list *src,block_list *target,uint16
 		ad.damage = battle_calc_gvg_damage(src,target,ad.damage,skill_id,ad.flag);
 	else if (mapdata->getMapFlag(MF_BATTLEGROUND))
 		ad.damage = battle_calc_bg_damage(src,target,ad.damage,skill_id,ad.flag);
+	else if (mapdata->getMapFlag(MF_FVF))
+		ad.damage = battle_calc_fvf_damage(src, target, ad.damage, skill_id, ad.flag);
 
 	// Skill damage adjustment
 	if ((skill_damage = battle_skill_damage(src,target,skill_id)) != 0)
@@ -7083,6 +7133,8 @@ struct Damage battle_calc_misc_attack(block_list *src,block_list *target,uint16 
 		md.damage = battle_calc_gvg_damage(src,target,md.damage,skill_id,md.flag);
 	else if(mapdata->getMapFlag(MF_BATTLEGROUND))
 		md.damage = battle_calc_bg_damage(src,target,md.damage,skill_id,md.flag);
+	else if (mapdata->getMapFlag(MF_FVF))
+		md.damage = battle_calc_fvf_damage(src, target, md.damage, skill_id, md.flag);
 
 	// Skill damage adjustment
 	if ((skill_damage = battle_skill_damage(src,target,skill_id)) != 0)
@@ -8303,6 +8355,9 @@ int32 battle_check_target( const block_list* src, const block_list* target, int3
 
 	const map_data* mapdata = map_getmapdata(m);
 
+	if (flag == BCT_FACTION && faction_get_id(s_bl) == faction_get_id(t_bl)) // Complete Faction System
+		return 1;
+
 	switch( target->type ) { // Checks on actual target
 		case BL_PC: {
 				const status_change* sc = status_get_sc(src);
@@ -8507,6 +8562,12 @@ int32 battle_check_target( const block_list* src, const block_list* target, int3
 				if( t_bl->type == BL_MOB && !(static_cast<const mob_data*>(t_bl)->special_state.ai ) )
 					state |= BCT_ENEMY; //Natural enemy for AI mobs are normal mobs.
 			}
+			if (t_bl != s_bl && mapdata->getMapFlag(MF_FVF) && !faction_check_alliance(s_bl, t_bl) && md->faction_id && (
+				(battle_config.fvf_monster_ai && !((TBL_MOB*)t_bl)->faction_id) ||
+				(!battle_config.fvf_monster_ai && ((TBL_MOB*)t_bl)->faction_id))) {
+				state |= BCT_ENEMY;
+				strip_enemy = 0;
+			}
 			break;
 		}
 		default:
@@ -8557,26 +8618,38 @@ int32 battle_check_target( const block_list* src, const block_list* target, int3
 			if( !(mapdata->getMapFlag(MF_PVP) && mapdata->getMapFlag(MF_PVP_NOGUILD)) && s_guild && t_guild && (s_guild == t_guild || (!(flag&BCT_SAMEGUILD) && guild_isallied(s_guild, t_guild))) && (!mapdata->getMapFlag(MF_BATTLEGROUND) || sbg_id == tbg_id) )
 				state |= BCT_GUILD;
 			else
-				state |= BCT_ENEMY;
-		}
-		if( state&BCT_ENEMY && mapdata->getMapFlag(MF_BATTLEGROUND) && sbg_id && sbg_id == tbg_id )
-			state &= ~BCT_ENEMY;
-
-		if( state&BCT_ENEMY && battle_config.pk_mode && !mapdata_flag_gvg(mapdata) && s_bl->type == BL_PC && t_bl->type == BL_PC )
-		{ // Prevent novice engagement on pk_mode (feature by Valaris)
-			const map_session_data* sd = static_cast<const map_session_data*>(s_bl);
-			const map_session_data* sd2 = static_cast<const map_session_data*>(t_bl);
-			if (
-				(sd->class_&MAPID_SECONDMASK) == MAPID_NOVICE ||
-				(sd2->class_&MAPID_SECONDMASK) == MAPID_NOVICE ||
-				(int32)sd->status.base_level < battle_config.pk_min_level ||
-			  	(int32)sd2->status.base_level < battle_config.pk_min_level ||
-				(battle_config.pk_level_range && abs((int32)sd->status.base_level - (int32)sd2->status.base_level) > battle_config.pk_level_range)
-			)
-				state &= ~BCT_ENEMY;
-		}
-	}//end map_flag_vs chk rivality
-	else
+ 				state |= BCT_ENEMY;
+ 		}
+		if( state&BCT_ENEMY )
+		{
+			if( mapdata->getMapFlag(MF_BATTLEGROUND) && sbg_id && sbg_id == tbg_id )
+ 				state &= ~BCT_ENEMY;
+			if( mapdata->getMapFlag(MF_FVF)){
+				if( (faction_get_id(s_bl) && faction_get_id(t_bl) && (
+					map_getcell(t_bl->m,t_bl->x,t_bl->y,CELL_CHKFVF) ||
+					map_getcell(s_bl->m,s_bl->x,s_bl->y,CELL_CHKFVF) ||
+					(s_bl->type == BL_PC && ((int)((TBL_PC*)s_bl)->status.base_level < battle_config.fvf_min_lvl)) ||
+					(t_bl->type == BL_PC && ((int)((TBL_PC*)t_bl)->status.base_level < battle_config.fvf_min_lvl)) ||
+					faction_check_alliance(s_bl,t_bl))) ||
+					(s_bl->type == BL_PC && t_bl->type == BL_PC && !faction_get_id(s_bl) && !faction_get_id(t_bl))
+				)
+					state &= ~BCT_ENEMY;
+			}
+			if( battle_config.pk_mode && !mapdata_flag_gvg(mapdata) && s_bl->type == BL_PC && t_bl->type == BL_PC )
+			{ // Prevent novice engagement on pk_mode (feature by Valaris)
+				TBL_PC *sd = (TBL_PC*)s_bl, *sd2 = (TBL_PC*)t_bl;
+				if (
+					(sd->class_&MAPID_SECONDMASK) == MAPID_NOVICE ||
+					(sd2->class_&MAPID_SECONDMASK) == MAPID_NOVICE ||
+					(int32)sd->status.base_level < battle_config.pk_min_level ||
+					(int32)sd2->status.base_level < battle_config.pk_min_level ||
+					(battle_config.pk_level_range && abs((int32)sd->status.base_level - (int)sd2->status.base_level) > battle_config.pk_level_range)
+				)
+					state &= ~BCT_ENEMY;
+			}
+ 		}
+ 	}//end map_flag_vs chk rivality
+ 	else
 	{ //Non pvp/gvg, check party/guild settings.
 		if( flag&BCT_PARTY || state&BCT_ENEMY )
 		{
@@ -9054,6 +9127,40 @@ static const struct _battle_data {
 	{ "bg_magic_attack_damage_rate",        &battle_config.bg_magic_damage_rate,            60,     0,      INT_MAX,        },
 	{ "bg_misc_attack_damage_rate",         &battle_config.bg_misc_damage_rate,             60,     0,      INT_MAX,        },
 	{ "bg_flee_penalty",                    &battle_config.bg_flee_penalty,                 20,     0,      INT_MAX,        },
+	// Complete Faction System
+	{ "faction_status_bl", & battle_config.faction_status_bl, BL_CHAR, BL_NUL, BL_ALL, },
+	{ "fvf_monster_ai", & battle_config.fvf_monster_ai, 1, 0, 1				},
+	{ "faction_chat_settings", & battle_config.faction_chat_settings, 1, 0, 7				},
+	{ "fvf_hp_bar", & battle_config.fvf_hp_bar, 1, 0, 1				},
+	{ "fvf_min_lvl", & battle_config.fvf_min_lvl, 55, 1, MAX_LEVEL		},
+	{ "faction_points", & battle_config.faction_points, 1, 0, 3				},
+	{ "fvf_visual_size", & battle_config.fvf_visual_size, 1, 0, 2				},
+	{ "fvf_add_hp_rate", & battle_config.fvf_add_hp_rate, 0, 0, 5000         	},
+	{ "fvf_add_sp_rate", & battle_config.fvf_add_sp_rate, 0, 0, 5000         	},
+	{ "fvf_short_attack_damage_rate", & battle_config.fvf_short_damage_rate, 80, 0, INT_MAX         },
+	{ "fvf_long_attack_damage_rate", & battle_config.fvf_long_damage_rate, 80, 0, INT_MAX         },
+	{ "fvf_weapon_attack_damage_rate", & battle_config.fvf_weapon_damage_rate, 60, 0, INT_MAX         },
+	{ "fvf_magic_attack_damage_rate", & battle_config.fvf_magic_damage_rate, 60, 0, INT_MAX         },
+	{ "fvf_misc_attack_damage_rate", & battle_config.fvf_misc_damage_rate, 60, 0, INT_MAX         },
+	{ "chat_leader", & battle_config.chat_leader, 0xFF0000, 0x000000, 0xFFFFFF		},
+	{ "fvf_change_ccolor", & battle_config.fvf_change_ccolor, 1, 0, 2, },
+	{ "fvf_change_hcolor", & battle_config.fvf_change_hcolor, 1, 0, 2, },
+	{ "fvf_change_hstyle", & battle_config.fvf_change_hstyle, 1, 0, 2, },
+	{ "faction_fvf_notify", & battle_config.faction_fvf_notify, 1, 0, 3, },
+	{ "faction_fvf_notify_color", & battle_config.faction_fvf_notify_color, 0xFF0000, 0x000000, 0xFFFFFF		},
+	{ "faction_heal_settings", & battle_config.faction_heal_settings, 1, 0, 2, },
+	{ "faction_party_settings", & battle_config.faction_party_settings, 0, 0, 2, },
+	{ "faction_guild_settings", & battle_config.faction_guild_settings, 0, 0, 2, },
+	{ "faction_heal_bl", & battle_config.faction_heal_bl, BL_PC, BL_NUL, BL_ALL, },
+	{ "faction_size_bl", & battle_config.faction_size_bl, BL_CHAR, BL_NUL, BL_ALL, },
+	{ "faction_aura_bl", & battle_config.faction_aura_bl, BL_CHAR | BL_NPC, BL_NUL, BL_ALL, },
+	{ "faction_aura_settings", & battle_config.faction_aura_settings, 0, 0, 2, },
+	{ "faction_trade_settings", & battle_config.faction_trade_settings, 0, 0, 2, },
+	{ "faction_ally_info_bl", & battle_config.faction_ally_info_bl, BL_CHAR, BL_NUL, BL_ALL, },
+	{ "faction_npc_settings", & battle_config.faction_npc_settings, 0, 0, 2, },
+	{ "fvf_in_all_maps", & battle_config.fvf_in_all_maps, 0, 0, 1, },
+	{ "faction_disc_min", & battle_config.faction_disc_min, -100, -INT_MAX, 0		        },
+	{ "faction_disc_max", & battle_config.faction_disc_max, 100, 0, INT_MAX         },
 // rAthena
 	{ "max_third_parameter",				&battle_config.max_third_parameter,				135,	10,		SHRT_MAX,		},
 	{ "max_baby_third_parameter",			&battle_config.max_baby_third_parameter,		108,	10,		SHRT_MAX,		},

@@ -35,6 +35,7 @@ enum Channel_Type {
 	CHAN_TYPE_PRIVATE = 1, ///< User's channel
 	CHAN_TYPE_MAP	  = 2, ///< Local map
 	CHAN_TYPE_ALLY	  = 3, ///< Guild + its alliance
+	CHAN_TYPE_FACTION = 4, ///< faction
 };
 
 struct Channel {
@@ -49,6 +50,7 @@ struct Channel {
 	uint32 char_id;		  ///< If CHAN_TYPE_PRIVATE, owner is char_id of channel creator
 	uint16 m;					  ///< If CHAN_TYPE_MAP, owner is map id
 	int32 gid;					  ///< If CHAN_TYPE_ALLY, owner is first logged guild_id
+	int32 fid;					  ///< If CHAN_TYPE_FACTION, owner is first logged faction_id
 	DBMap *users;				  ///< List of users
 	DBMap *banned;				  ///< List of banned chars -> char_id
 	uint16 group_count;	  ///< Number of group id
@@ -81,6 +83,7 @@ struct Channel_Config {
 
 	struct Channel map_tmpl;  ///< Map channel default config
 	struct Channel ally_tmpl; ///< Alliance channel default config
+	struct Channel faction_tmpl; ///< Faction channel default config
 
 	bool closing; ///< Server is closing
 };
@@ -95,6 +98,7 @@ int32 channel_delete(struct Channel *channel, bool force);
 int32 channel_join(struct Channel *channel, map_session_data *sd);
 int32 channel_mjoin(map_session_data *sd);
 int32 channel_gjoin(map_session_data *sd, int32 flag);
+int32 channel_fjoin(map_session_data* sd, int flag);
 int32 channel_ajoin(struct mmo_guild &g);
 int32 channel_clean(struct Channel *channel, map_session_data *sd, int32 flag);
 int32 channel_pcquit(map_session_data *sd, int32 type);

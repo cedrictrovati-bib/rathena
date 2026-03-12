@@ -36,6 +36,7 @@
 #include "clan.hpp"
 #include "clif.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "instance.hpp"
@@ -420,6 +421,17 @@ static int32 clif_send_sub(block_list *bl, va_list ap)
 	type = va_arg(ap,int32);
 
 	switch(type) {
+	case AREA_FVF: // Complete Faction System
+	case FACTION_AREA_WOS:
+	case FVF_OTHER_AREA_CHAT:
+				//ShowError("%d - Case 1 %d \n",bl->id, type);
+					//if( type != AREA_FVF && bl == src_bl ) // Not showing him self if no FVF area
+						//return 0;
+			if (type == FACTION_AREA_WOS && !faction_check_alliance(src_bl, bl)) // Not showing for no ally
+			return 0;
+		if (type == FVF_OTHER_AREA_CHAT && faction_check_alliance(src_bl, bl)) // Not showing for ally
+			return 0;
+		break;
 	case AREA_WOS:
 		if (bl == src_bl)
 			return 0;
@@ -737,6 +749,25 @@ int32 clif_send(const void* buf, int32 len, const block_list* bl, enum send_targ
 			}
 			mapit_free(iter);
 		}
+		break;
+		// Complete Faction System
+	case FACTION:
+		iter = mapit_getallusers();
+		while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
+			if( sd->status.faction_id != tsd->status.faction_id )
+				continue;
+
+				WFIFOHEAD(tsd->fd, len);
+				memcpy(WFIFOP(tsd->fd,0), buf, len);
+				WFIFOSET(tsd->fd,len);
+		}
+		mapit_free(iter);
+		break;
+
+	case AREA_FVF:
+	case FACTION_AREA_WOS:
+	case FVF_OTHER_AREA_CHAT:
+			map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,BL_PC, buf, len, bl, type);
 		break;
 
 	default:
@@ -1698,7 +1729,7 @@ int32 clif_spawn( const block_list* bl, bool walking ){
 		clif_spawn_unit( bl, AREA_WOS );
 	}
 
-	clif_refresh_clothcolor( *bl, AREA_WOS );
+	//clif_refresh_clothcolor( *bl, AREA_WOS );
 
 	switch (bl->type)
 	{
@@ -1760,6 +1791,8 @@ int32 clif_spawn( const block_list* bl, bool walking ){
 	}
 
 	clif_hat_effects( *bl, AREA, *bl );
+
+	faction_spawn(bl);
 
 	return 0;
 }
@@ -2066,6 +2099,7 @@ void clif_move( const struct unit_data& ud )
 {
 	const block_list* bl = ud.bl;
 	const view_data* vd = status_get_viewdata(bl);
+	std::shared_ptr<s_faction_db> fdb;
 
 	if (bl == nullptr || vd == nullptr)
 		return;
@@ -2086,7 +2120,20 @@ void clif_move( const struct unit_data& ud )
 
 	clif_set_unit_walking( *bl, nullptr, ud, AREA_WOS );
 
-	clif_refresh_clothcolor( *bl, AREA_WOS );
+	clif_refresh_clothcolor(*bl, AREA_WOS);
+
+	/*if (battle_config.fvf_change_ccolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->ccolor)
+		clif_refreshlook(bl, bl->id, LOOK_CLOTHES_COLOR, (map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_ccolor == 2) ? fdb->ccolor : vd->look[LOOK_CLOTHES_COLOR], AREA_WOS);
+	else if (vd->look[LOOK_CLOTHES_COLOR])
+		clif_refreshlook(bl, bl->id, LOOK_CLOTHES_COLOR, vd->look[LOOK_CLOTHES_COLOR], AREA_WOS);
+	if (battle_config.fvf_change_hcolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hcolor)
+		clif_refreshlook(bl, bl->id, LOOK_HAIR_COLOR, (map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hcolor == 2) ? fdb->hcolor : vd->look[LOOK_HAIR_COLOR], AREA_WOS);
+	else if (vd->look[LOOK_HAIR_COLOR])
+		clif_refreshlook(bl, bl->id, LOOK_HAIR_COLOR, vd->look[LOOK_HAIR_COLOR], AREA_WOS);
+	if (battle_config.fvf_change_hstyle && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hstyle)
+		clif_refreshlook(bl, bl->id, LOOK_HAIR, (map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hstyle == 2) ? fdb->hstyle : vd->look[LOOK_HAIR], AREA_WOS);
+	else if (vd->look[LOOK_HAIR])
+		clif_refreshlook(bl, bl->id, LOOK_HAIR, vd->look[LOOK_HAIR], AREA_WOS);*/
 
 	switch (bl->type) {
 	case BL_PC:
@@ -2242,7 +2289,7 @@ void clif_buylist( const map_session_data& sd, const npc_data& nd ){
 		int32 val = nd.u.shop.shop_item[i].value;
 
 		p->items[count].price = val;
-		p->items[count].discountPrice = ( discount ) ? pc_modifybuyvalue( &sd, val ) : val;
+		p->items[count].discountPrice = (discount) ? pc_modifybuyvalue(&sd, &nd, val) : val;
 		p->items[count].itemType = itemtype( nd.u.shop.shop_item[i].nameid );
 		p->items[count].itemId = client_nameid( nd.u.shop.shop_item[i].nameid );
 #if PACKETVER_MAIN_NUM >= 20210203 || PACKETVER_RE_NUM >= 20211103
@@ -3542,6 +3589,8 @@ void clif_update_hp( const map_session_data &sd ) {
 		clif_party_hp( sd );
 	if (sd.bg_id)
 		clif_bg_hp(&sd);
+	if (map_getmapflag(sd.m, MF_FVF) && battle_config.fvf_hp_bar) // Complete Faction System
+		faction_hp(&sd);
 }
 
 /// Notifies client of a character parameter change.
@@ -4040,6 +4089,11 @@ void clif_changelook(block_list *bl,int32 type,int32 val) {
 						val = 0;
 					if (sc->option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
 						val = 0;
+				}
+				{
+					std::shared_ptr<s_faction_db> fdb;
+					if ((fdb = faction_db.find(faction_get_id(bl))) != NULL && battle_config.fvf_change_ccolor == 2)
+						val = fdb->ccolor;					
 				}
 				vd->look[LOOK_CLOTHES_COLOR] = val;
 				break;
@@ -5008,7 +5062,7 @@ static void clif_getareachar_pc(map_session_data* sd,map_session_data* dstsd)
 		clif_abyssball( *dstsd, sd, SELF );
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
-		pc_has_permission(sd, PC_PERM_VIEW_HPMETER)
+		pc_has_permission(sd, PC_PERM_VIEW_HPMETER) || (faction_check_hp(sd, dstsd)) // Complete Faction System
 	)
 	clif_hpmeter_single( *sd, dstsd->id, dstsd->battle_status.hp, dstsd->battle_status.max_hp );
 
@@ -5032,6 +5086,7 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 
 	struct unit_data *ud;
 	struct view_data *vd;
+	std::shared_ptr<s_faction_db> fdb;
 	bool option = false;
 	uint32 option_val = 0;
 
@@ -5062,10 +5117,36 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 		clif_set_unit_walking( *bl, sd, *ud, SELF );
 	}else{
 		if (bl->type != BL_STALL)
-			clif_set_unit_idle(bl, false, SELF, sd);
+			clif_set_unit_idle( bl, false, SELF, sd );
 	}
 
-	clif_refresh_clothcolor( *bl, SELF, sd );
+	/*if( battle_config.fvf_change_ccolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->ccolor )
+		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,(map_getmapflag( bl->m, MF_FVF) || battle_config.fvf_change_ccolor == 2) ? fdb->ccolor : vd->look[LOOK_CLOTHES_COLOR],SELF);
+	else if(vd->look[LOOK_CLOTHES_COLOR])
+ 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR, vd->look[LOOK_CLOTHES_COLOR],SELF);
+	if( battle_config.fvf_change_hcolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hcolor )
+		clif_refreshlook(bl,bl->id,LOOK_HAIR_COLOR,(map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hcolor == 2) ? fdb->hcolor : vd->look[LOOK_HAIR_COLOR],SELF);
+	else if(vd->look[LOOK_HAIR_COLOR])
+		clif_refreshlook(bl,bl->id,LOOK_HAIR_COLOR, vd->look[LOOK_HAIR_COLOR],SELF);
+	if( battle_config.fvf_change_hstyle && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hstyle )
+		clif_refreshlook(bl,bl->id,LOOK_HAIR,(map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hstyle == 2) ? fdb->hstyle : vd->look[LOOK_HAIR],SELF);
+	else if(vd->look[LOOK_HAIR])
+		clif_refreshlook(bl,bl->id,LOOK_HAIR, vd->look[LOOK_HAIR],SELF);
+ 	if (vd->look[LOOK_BODY])
+		clif_refreshlook(bl,bl->id,LOOK_BODY2,vd->look[LOOK_BODY],SELF);
+ 
+	if( battle_config.fvf_change_ccolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->ccolor )
+		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,(map_getmapflag( bl->m, MF_FVF) || battle_config.fvf_change_ccolor == 2) ? fdb->ccolor : vd->look[LOOK_CLOTHES_COLOR],AREA_WOS);
+	else if(vd->look[LOOK_CLOTHES_COLOR])
+		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR, vd->look[LOOK_CLOTHES_COLOR],AREA_WOS);
+	if( battle_config.fvf_change_hcolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hcolor )
+		clif_refreshlook(bl,bl->id,LOOK_HAIR_COLOR,(map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hcolor == 2) ? fdb->hcolor : vd->look[LOOK_HAIR_COLOR],AREA_WOS);
+	else if(vd->look[LOOK_HAIR_COLOR])
+		clif_refreshlook(bl,bl->id,LOOK_HAIR_COLOR, vd->look[LOOK_HAIR_COLOR],AREA_WOS);
+	if( battle_config.fvf_change_hstyle && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->hstyle )
+		clif_refreshlook(bl,bl->id,LOOK_HAIR,(map_getmapflag(bl->m, MF_FVF) || battle_config.fvf_change_hstyle == 2) ? fdb->hstyle : vd->look[LOOK_HAIR], AREA_WOS);
+	else if(vd->look[LOOK_HAIR])
+		clif_refreshlook(bl,bl->id,LOOK_HAIR,vd->look[LOOK_HAIR],AREA_WOS);*/
 
 	switch (bl->type)
 	{

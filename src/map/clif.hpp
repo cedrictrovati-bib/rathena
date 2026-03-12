@@ -238,6 +238,11 @@ enum send_target : uint8_t {
 	BG_AREA,
 	BG_AREA_WOS,
 
+	FACTION_AREA_WOS, // Complete Faction System
+	AREA_FVF,
+	FVF_OTHER_AREA_CHAT,
+	FACTION,
+
 	CLAN,				// Clan System
 };
 
@@ -1377,6 +1382,8 @@ enum clif_colors {
 	COLOR_MAX
 };
 extern unsigned long color_table[COLOR_MAX];
+
+void clif_getareachar_unit(map_session_data* sd, struct block_list* bl);
 
 void clif_channel_msg(struct Channel *channel, const char *msg, unsigned long color);
 

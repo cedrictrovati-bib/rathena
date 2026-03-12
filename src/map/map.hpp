@@ -477,6 +477,7 @@ struct spawn_data {
 	uint16 active;//Number of mobs that are already spawned (for mob_remove_damaged: no)
 	uint32 delay1, delay2; //Spawn delay (fixed base + random variance)
 	uint32 level;
+	int32 faction_id;
 	struct {
 		uint32 size : 2; //Holds if mob has to be tiny/large
 		enum mob_ai ai; //Special ai for summoned monsters.
@@ -523,6 +524,7 @@ enum _sp {
 	SP_CASHPOINTS, SP_KAFRAPOINTS,
 	SP_PCDIECOUNTER, SP_COOKMASTERY,
 	SP_ACHIEVEMENT_LEVEL,
+	SP_FACTION, //136
 	SP_GOLDPC_POINTS,
 
 	// Mercenaries
@@ -693,6 +695,7 @@ enum e_mapflag : int16 {
 	MF_NOPETCAPTURE,
 	MF_NOBUYINGSTORE,
 	MF_NODYNAMICNPC,
+	MF_FVF,
 	MF_NOBANK,
 	MF_SPECIALPOPUP,
 	MF_NOMACROCHECKER,
@@ -760,6 +763,7 @@ enum cell_t{
 	CELL_MAELSTROM,
 	CELL_ICEWALL,
 	CELL_NOBUYINGSTORE,
+	CELL_FVF,
 };
 
 // used by map_getcell()
@@ -784,6 +788,7 @@ enum cell_chk : uint8 {
 	CELL_CHKMAELSTROM,		// Whether the cell has Maelstrom
 	CELL_CHKICEWALL,		// Whether the cell has Ice Wall
 	CELL_CHKNOBUYINGSTORE,	// Whether the cell denies ALL_BUYING_STORE skill
+	CELL_CHKFVF,			// Whether the cell has fvf
 
 };
 
@@ -804,7 +809,8 @@ struct mapcell
 		nochat : 1,
 		maelstrom : 1,
 		icewall : 1,
-		nobuyingstore : 1;
+		nobuyingstore : 1,
+		fvf : 1;
 
 #ifdef CELL_NOSTACK
 	unsigned char cell_bl; //Holds amount of bls in this cell.
@@ -841,6 +847,11 @@ struct map_data {
 	struct s_skill_damage damage_adjust; // Used for overall skill damage adjustment
 	std::unordered_map<uint16, s_skill_damage> skill_damage; // Used for single skill damage adjustment
 	std::unordered_map<uint16, int32> skill_duration;
+
+	struct {
+		int32 id;
+		int32 relic;
+	} faction;
 
 	npc_data *npc[MAX_NPC_PER_MAP];
 	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
@@ -935,7 +946,7 @@ inline bool mapdata_flag_vs(const map_data* mapdata) {
 	if (mapdata == nullptr)
 		return false;
 
-	if (mapdata->getMapFlag(MF_PVP) || mapdata->getMapFlag(MF_GVG_DUNGEON) || mapdata->getMapFlag(MF_GVG) || ((agit_flag || agit2_flag) && mapdata->getMapFlag(MF_GVG_CASTLE)) || mapdata->getMapFlag(MF_GVG_TE) || (agit3_flag && mapdata->getMapFlag(MF_GVG_TE_CASTLE)) || mapdata->getMapFlag(MF_BATTLEGROUND))
+	if (mapdata->getMapFlag(MF_PVP) || mapdata->getMapFlag(MF_GVG_DUNGEON) || mapdata->getMapFlag(MF_GVG) || ((agit_flag || agit2_flag) && mapdata->getMapFlag(MF_GVG_CASTLE)) || mapdata->getMapFlag(MF_GVG_TE) || (agit3_flag && mapdata->getMapFlag(MF_GVG_TE_CASTLE)) || mapdata->getMapFlag(MF_BATTLEGROUND) || mapdata->getMapFlag(MF_FVF))
 		return true;
 
 	return false;

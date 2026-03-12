@@ -35,6 +35,7 @@
 #include "clif.hpp"
 #include "duel.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "instance.hpp"
@@ -131,7 +132,7 @@ static block_list *bl_list[BL_LIST_MAX];
 static int32 bl_list_count = 0;
 
 #ifndef MAP_MAX_MSG
-	#define MAP_MAX_MSG 1550
+	#define MAP_MAX_MSG 4550
 #endif
 
 struct map_data map[MAX_MAP_PER_SERVER];
@@ -632,6 +633,9 @@ int32 map_moveblock(block_list *bl, int32 x1, int32 y1, t_tick tick)
 					skill_unit_move_unit_group(skill_id2group(sc->getSCE(SC_SOULCOLD)->val4), bl->m, x1-x0, y1-y0);
 				if (sc->getSCE(SC_HAWKEYES))
 					skill_unit_move_unit_group(skill_id2group(sc->getSCE(SC_HAWKEYES)->val4), bl->m, x1-x0, y1-y0);
+			}
+			if (bl->type == BL_PC && faction_check_leader(((TBL_PC*)bl)) && sc->getSCE(SC_FACTION_AURA)) { // Complete Faction System
+				skill_unit_move_unit_group(skill_id2group(sc->getSCE(SC_FACTION_AURA)->val4), bl->m, x1 - x0, y1 - y0);
 			}
 		}
 	} else
@@ -3379,6 +3383,8 @@ int32 map_getcellp(struct map_data* m,int16 x,int16 y,cell_chk cellchk)
 			return (cell.maelstrom);
 		case CELL_CHKICEWALL:
 			return (cell.icewall);
+		case CELL_CHKFVF:
+			return (cell.fvf);
 
 		// special checks
 		case CELL_CHKPASS:
@@ -3434,6 +3440,7 @@ void map_setcell(int16 m, int16 x, int16 y, cell_t cell, bool flag)
 		case CELL_NOCHAT:        mapdata->cell[j].nochat = flag;        break;
 		case CELL_MAELSTROM:	 mapdata->cell[j].maelstrom = flag;	  break;
 		case CELL_ICEWALL:		 mapdata->cell[j].icewall = flag;		  break;
+		case CELL_FVF:		     mapdata->cell[j].fvf = flag;		  break;
 		case CELL_NOBUYINGSTORE: mapdata->cell[j].nobuyingstore = flag; break;
 		default:
 			ShowWarning("map_setcell: invalid cell type '%d'\n", (int32)cell);
@@ -3803,6 +3810,8 @@ void map_flags_init(void){
 		// adjustments
 		if( battle_config.pk_mode && !mapdata_flag_vs2(mapdata) )
 			mapdata->setMapFlag(MF_PVP, true); // make all maps pvp for pk_mode [Valaris]
+		if (battle_config.fvf_in_all_maps && !mapdata_flag_vs2(mapdata))
+			mapdata->setMapFlag(MF_FVF, true);
 	}
 }
 
@@ -5080,6 +5089,7 @@ void MapServer::finalize(){
 	do_final_battleground();
 	do_final_duel();
 	do_final_elemental();
+	do_final_faction();
 	do_final_cashshop();
 	do_final_channel(); //should be called after final guild
 	do_final_vending();
@@ -5453,6 +5463,7 @@ bool MapServer::initialize( int32 argc, char *argv[] ){
 	do_init_mercenary();
 	do_init_elemental();
 	do_init_quest();
+	do_init_faction();
 	do_init_achievement();
 	do_init_battleground();
 	do_init_npc();

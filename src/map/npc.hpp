@@ -12,6 +12,7 @@
 #include <config/core.hpp>
 
 #include "clif.hpp" //
+#include "faction.hpp"
 #include "map.hpp" // block_list
 #include "status.hpp" // struct status_change
 #include "unit.hpp" // struct unit_data
@@ -168,6 +169,8 @@ struct npc_data : public block_list {
 	int32 instance_id;
 	e_npcv_status state{NPCVIEW_ENABLE};
 
+	int32 faction_id;
+
 	unsigned size : 2;
 
 	struct status_data status;
@@ -199,6 +202,7 @@ struct npc_data : public block_list {
 			t_itemid itemshop_nameid; // Item Shop cost item ID
 			char pointshop_str[32]; // Point Shop cost variable name
 			bool discount;
+			int fdiscount[MAX_FACTION];
 		} shop;
 		struct {
 			int16 xs,ys; // OnTouch area radius

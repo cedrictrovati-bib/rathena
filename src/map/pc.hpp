@@ -70,6 +70,9 @@ class MapGuild;
 #ifndef GOLDPC_SECONDS_VAR
 #define GOLDPC_SECONDS_VAR "Goldpc_Seconds"
 #endif
+#define FACTIONID "FACTIONID"
+
+
 
 //Total number of classes (for data storage)
 #define CLASS_COUNT (JOB_MAX - JOB_NOVICE_HIGH + JOB_MAX_BASIC)
@@ -487,6 +490,8 @@ public:
 	std::shared_ptr<s_player_group> group;
 	std::bitset<PC_PERM_MAX> permissions; // group permissions have to be copied, because they might be adjusted by atcommand addperm
 	int32 count_rewarp; //count how many time we being rewarped
+
+	int32 faction_points;
 
 	int32 langtype;
 	struct mmo_charstatus status;
@@ -1515,7 +1520,7 @@ int32 pc_identifyall(map_session_data *sd, bool identify_item);
 bool pc_steal_item(map_session_data *sd,block_list *bl, uint16 skill_lv);
 int32 pc_steal_coin(map_session_data *sd,block_list *bl);
 
-int32 pc_modifybuyvalue( const map_session_data*, int32 orig_value );
+int32 pc_modifybuyvalue( const map_session_data*,const npc_data* nd,int32 orig_value );
 int32 pc_modifysellvalue( const map_session_data*,int32 orig_value );
 
 int32 pc_follow(map_session_data*, int32); // [MouseJstr]

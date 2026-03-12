@@ -87,6 +87,18 @@ void vending_vendinglistreq(map_session_data* sd, int32 id)
 	if( !vsd->state.vending )
 		return; // not vending
 
+	if( sd->status.faction_id && vsd->status.faction_id )
+	{
+		if( battle_config.faction_trade_settings == 1 && !faction_check_alliance(sd,vsd) )
+		{
+			clif_displaymessage(sd->fd, msg_txt(sd,4054));
+			return;
+		} else if( !battle_config.faction_trade_settings && sd->status.faction_id != vsd->status.faction_id ) {
+			clif_displaymessage(sd->fd, msg_txt(sd,4053));
+			return;
+		}
+	}
+
 	if (!pc_can_give_items(sd) || !pc_can_give_items(vsd)) { //check if both GMs are allowed to trade
 		clif_displaymessage( sd->fd, msg_txt( sd, 246 ) ); // Your GM level doesn't authorize you to perform this action.
 		return;

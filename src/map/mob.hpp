@@ -45,7 +45,7 @@ const t_tick MOB_SKILL_INTERVAL = 1000;
 #define MOB_SLAVEDISTANCE 2
 
 //Used to determine default enemy type of mobs (for use in eachinrange calls)
-#define DEFAULT_ENEMY_TYPE(md) (md->special_state.ai?BL_CHAR:BL_MOB|BL_PC|BL_HOM|BL_MER)
+#define DEFAULT_ENEMY_TYPE(md) ((md->special_state.ai || md->faction_id)?BL_CHAR:BL_MOB|BL_PC|BL_HOM|BL_MER)
 
 /**
  * Mob constants
@@ -396,6 +396,7 @@ struct mob_data : public block_list {
 	 * MvP Tombstone NPC ID
 	 **/
 	int32 tomb_nid;
+	int32 faction_id;
 	uint16 damagetaken;
 
 	e_mob_bosstype get_bosstype() const;
@@ -510,7 +511,7 @@ int32 mob_once_spawn(map_session_data* sd, int16 m, int16 x, int16 y,
 	const char* mobname, int32 mob_id, int32 amount, const char* event, uint32 size, enum mob_ai ai);
 
 int32 mob_once_spawn_area(map_session_data* sd, int16 m,
-	int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int32 mob_id, int32 amount, const char* event, uint32 size, enum mob_ai ai);
+	int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int mob_id, int amount, const char* event, unsigned int size, enum mob_ai ai, int32 faction_id);
 
 bool mob_ksprotected (block_list *src, block_list *target);
 

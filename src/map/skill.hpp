@@ -128,6 +128,7 @@ enum e_skill_inf2 : uint8 {
 	INF2_SHOWSCALE, // Skill shows AoE area while casting
 	INF2_IGNOREGTB, // Skill ignores effect of GTB
 	INF2_TOGGLEABLE, // Skill can be toggled on and off (won't consume HP/SP when toggled off)
+	INF2_FACTION,
 	INF2_IGNORENONCRITATKBONUS, // Skill ignores the bonus of bNonCritAtkRate
 	INF2_MAX,
 };
@@ -412,7 +413,9 @@ struct s_skill_unit_group {
 		unsigned ammo_consume : 1; // Need to consume ammo
 		unsigned song_dance : 2; //0x1 Song/Dance, 0x2 Ensemble
 		unsigned guildaura : 1; // Guild Aura
+		unsigned faction_aura : 1; // Complete Faction System
 	} state;
+	int faction_id; // Complete Faction System
 
 	~s_skill_unit_group() {
 		if (this->unit)
@@ -2603,7 +2606,8 @@ enum e_skill {
 	ABR_DUAL_CANNON_FIRE,
 	ABR_NET_REPAIR,
 	ABR_NET_SUPPORT,
-	ABR_INFINITY_BUSTER
+	ABR_INFINITY_BUSTER,
+	FACTION_AURA = 10020
 };
 
 /// The client view ids for land skills.
@@ -2804,6 +2808,7 @@ enum e_skill_unit_id : uint16 {
 	UNT_GD_SOULCOLD = 0xc3,
 	UNT_GD_HAWKEYES = 0xc4,
 
+	UNT_FACTION_AURA = 0x189, // Complete Faction System
 	UNT_MAX = 0x190
 };
 

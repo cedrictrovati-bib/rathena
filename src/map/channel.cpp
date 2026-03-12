@@ -16,6 +16,7 @@
 
 #include "battle.hpp"
 #include "clif.hpp" //clif_chsys_msg
+#include "faction.hpp"
 #include "guild.hpp"
 #include "map.hpp" //msg_conf
 #include "pc.hpp"
@@ -64,6 +65,9 @@ struct Channel* channel_create(struct Channel *tmp_chan) {
 		case CHAN_TYPE_ALLY:
 			channel->gid = tmp_chan->gid;
 			break;
+		case CHAN_TYPE_FACTION:
+			channel->fid = tmp_chan->fid;
+			break;
 		case CHAN_TYPE_PRIVATE:
 			channel->char_id = tmp_chan->char_id;
 			[[fallthrough]];
@@ -73,7 +77,7 @@ struct Channel* channel_create(struct Channel *tmp_chan) {
 	}
 
 	if (battle_config.etc_log)
-		ShowInfo("Create channel %s alias %s type=%d, owner=%d/%d/%d\n",channel->name,channel->alias,channel->type,channel->char_id,channel->m,channel->gid);
+		ShowInfo("Create channel %s alias %s type=%d, owner=%d/%d/%d/%d\n", channel->name, channel->alias, channel->type, channel->char_id, channel->m, channel->gid, channel->fid);
 
 	return channel;
 }
@@ -94,6 +98,10 @@ struct Channel* channel_create_simple(char *name, char *pass, enum Channel_Type 
 		case CHAN_TYPE_ALLY:
 			memcpy(&tmp_chan, &channel_config.ally_tmpl, sizeof(channel_config.ally_tmpl));
 			tmp_chan.gid = (int32)owner;
+			break;
+		case CHAN_TYPE_FACTION:
+			memcpy(&tmp_chan, &channel_config.faction_tmpl, sizeof(channel_config.faction_tmpl));
+			tmp_chan.fid = (int32)owner;
 			break;
 		case CHAN_TYPE_MAP:
 			memcpy(&tmp_chan, &channel_config.map_tmpl, sizeof(channel_config.map_tmpl));
@@ -174,6 +182,12 @@ int32 channel_delete(struct Channel *channel, bool force) {
 	case CHAN_TYPE_ALLY: {
 		auto g = guild_search(channel->gid);
 		if(g) g->channel = nullptr;
+		aFree(channel);
+		break;
+	}
+	case CHAN_TYPE_FACTION: {
+		std::shared_ptr<s_faction_db> fdb = faction_db.find(channel->fid);
+		if (fdb) fdb->channel = NULL;
 		aFree(channel);
 		break;
 	}
@@ -337,6 +351,36 @@ int32 channel_gjoin(map_session_data *sd, int32 flag){
 }
 
 /**
+ * Make a player join the faction channel
+ * - Create a faction channel if it does not exist
+ * @param sd: Player data
+ * @param flag: Join type (1 - Faction chat)
+ * @return
+ *   0: Success
+ *  -1: Invalid player
+ *  -2: Player has no faction attached
+ */
+int channel_fjoin(map_session_data *sd, int flag){
+	struct Channel *channel;
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+
+	if(!sd || sd->state.autotrade) return -1;
+
+	if(!fdb) return -2;
+
+	channel = fdb->channel;
+	if(!channel){
+		channel = channel_create_simple(NULL,NULL,CHAN_TYPE_FACTION,fdb->id);
+		fdb->channel = channel;
+	}
+	if(flag&1) {
+		channel_join(channel,sd);	//join our faction chat
+	}
+
+	return 0;
+}
+
+/**
  * Make player leave the channel and cleanup association
  * - If no one remains in the chat, delete it
  * @param channel: Channel data
@@ -388,7 +432,7 @@ int32 channel_clean(struct Channel *channel, map_session_data *sd, int32 flag) {
 /**
  * Make a player leave a type of channel
  * @param sd: Player data
- * @param type: Quit type (1 - Quit guild channel, 2 - Quit ally channel, 4 - Quit map channel, 8 - Quit all users in channel)
+ * @param type: Quit type (1 - Quit guild channel, 2 - Quit ally channel, 4 - Quit map channel, 8 - Quit faction channel, 16 - Quit all users in channel)
  * @return
  *  0: Success
  * -1: Invalid player
@@ -423,7 +467,13 @@ int32 channel_pcquit(map_session_data *sd, int32 type){
 	if(type&4 && channel_config.map_tmpl.name[0] && channel_haspc(mapdata->channel,sd)==1){ //quit map chan
 		channel_clean(mapdata->channel,sd,0);
 	}
-	if(type&8 && sd->channel_count ) { //quit all chan
+	if (type & 8 && channel_config.faction_tmpl.name[0] && sd->status.faction_id) { //quit faction chan
+		std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+		if (channel_haspc(fdb->channel, sd) == 1) {
+			channel_clean(fdb->channel, sd, 0); //leave faction chan
+		}
+	}
+	if (type&16 && sd->channel_count) { //quit all chan
 		uint8 count = sd->channel_count;
 		for( i = count-1; i >= 0; i--) { //going backward to avoid shifting
 			channel_clean(sd->channels[i],sd,0);
@@ -486,6 +536,7 @@ int32 channel_chk(char *chname, char *chpass, int32 type){
 		if( (type&2) && (
 			strcmpi(chname + 1,channel_config.map_tmpl.name) == 0
 			|| strcmpi(chname + 1,channel_config.ally_tmpl.name) == 0
+			|| strcmpi(chname + 1, channel_config.faction_tmpl.name) == 0
 			|| strdb_exists(channel_db, chname + 1) )
 			) {
 			return -4;
@@ -524,6 +575,14 @@ struct Channel* channel_name2channel(char *chname, map_session_data *sd, int32 f
 		if(flag&2 && channel_pc_haschan(sd,mapdata->channel) < 1)
 			channel_gjoin(sd,3);
 		return sd->guild->channel;
+	}
+	else if (sd && (strcmpi(chname + 1, channel_config.faction_tmpl.name) == 0) && sd->status.faction_id) {
+		std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+		if (flag & 1 && !fdb->channel)
+			fdb->channel = channel_create_simple(channel_config.faction_tmpl.name, NULL, CHAN_TYPE_FACTION, sd->status.faction_id);
+		if (flag & 2 && channel_pc_haschan(sd, mapdata->channel) < 1)
+			channel_fjoin(sd, 1);
+		return fdb->channel;
 	}
 	else
 		return (struct Channel*) strdb_get(channel_db, chname + 1);
@@ -637,6 +696,13 @@ int32 channel_display_list(map_session_data *sd, const char *options){
 				clif_displaymessage(sd->fd, output);
 			}
 		}
+		if (channel_config.faction_tmpl.name[0] && sd->status.faction_id) {
+			std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+			if (!fdb) return -1; //how can this happen if status.faction true ?
+			sprintf(output, msg_txt(sd, 1409), channel_config.faction_tmpl.name, db_size(((struct Channel*)fdb->channel)->users));// - #%s (%d users)
+			clif_displaymessage(sd->fd, output);
+		}
+
 		iter = db_iterator(channel_db);
 		for(channel = (struct Channel *)dbi_first(iter); dbi_exists(iter); channel = (struct Channel *)dbi_next(iter)) {
 			if (!has_perm && !channel_pccheckgroup(channel, sd->group_id))
@@ -756,6 +822,7 @@ int32 channel_pcleave(map_session_data *sd, char *chname){
 	switch(channel->type){
 	case CHAN_TYPE_ALLY: channel_pcquit(sd,3); break;
 	case CHAN_TYPE_MAP: channel_pcquit(sd,4); break;
+	case CHAN_TYPE_FACTION: channel_pcquit(sd, 8); break;
 	default: //private and public atm
 		channel_clean(channel,sd,0);
 	}
@@ -775,6 +842,7 @@ int32 channel_pcleave(map_session_data *sd, char *chname){
 int32 channel_pcjoin(map_session_data *sd, char *chname, char *pass){
 	struct Channel *channel;
 	char output[CHAT_SIZE_MAX];
+	std::shared_ptr<s_faction_db> fdb;
 
 	if(!sd || !chname)
 		return 0;
@@ -814,12 +882,20 @@ int32 channel_pcjoin(map_session_data *sd, char *chname, char *pass){
 		return -1;
 	}
 
+	if (channel->type == CHAN_TYPE_FACTION)
+		fdb = faction_db.find(sd->status.faction_id);
+
 	switch(channel->type){
-	case CHAN_TYPE_ALLY: channel_gjoin(sd,3); break;
-	case CHAN_TYPE_MAP: channel_mjoin(sd); break;
-	default: //private and public atm
-		if (channel_join(channel,sd) != 0)
-			return -1;
+		case CHAN_TYPE_ALLY: channel_gjoin(sd,3); break;
+		case CHAN_TYPE_MAP: channel_mjoin(sd); break;
+		case CHAN_TYPE_FACTION:
+			fdb = faction_db.find(sd->status.faction_id);
+			if (!fdb) return -1;
+			channel_fjoin(sd, 1);
+			break;
+		default: //private and public atm
+			if (channel_join(channel,sd) != 0)
+				return -1;
 	}
 
 	if( ( channel->opt & CHAN_OPT_ANNOUNCE_SELF ) ) {
@@ -1457,6 +1533,11 @@ void channel_read_config(void) {
 			memset(&channel_config.ally_tmpl, 0, sizeof(struct Channel));
 			channel_read_sub(channels, &channel_config.ally_tmpl, 0);
 		}
+		channels = config_setting_get_member(chan_setting, "faction");
+		if (channels != NULL) {
+			memset(&channel_config.faction_tmpl, 0, sizeof(struct Channel));
+			channel_read_sub(channels, &channel_config.faction_tmpl, 0);
+		}
 		channels = config_setting_get_member(chan_setting, "map");
 		if (channels != nullptr) {
 			memset(&channel_config.map_tmpl, 0, sizeof(struct Channel));
@@ -1494,6 +1575,7 @@ void do_init_channel(void) {
 	channel_db = stridb_alloc(static_cast<DBOptions>(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA), CHAN_NAME_LENGTH);
 	memset(&channel_config.private_channel, 0, sizeof(struct Channel));
 	memset(&channel_config.ally_tmpl, 0, sizeof(struct Channel));
+	memset(&channel_config.faction_tmpl, 0, sizeof(struct Channel));
 	memset(&channel_config.map_tmpl, 0, sizeof(struct Channel));
 	channel_read_config();
 }

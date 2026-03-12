@@ -1,0 +1,91 @@
+//===== rAthena Script =======================================
+//= Mapflag: Disable Faction versus Faction mode.
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= rAthena Project
+//===== Description: =========================================
+//= Prevents fvf mode on a map.
+//===== Additional Comments: =================================
+//= 1.0 Initial script.
+//============================================================
+
+// Cities ========================
+ayo_in01	mapflag	fvf
+// ayo_in02	mapflag	fvf
+// alberta_in	mapflag	fvf
+// alberta	mapflag	fvf
+// alde_alche	mapflag	fvf
+// aldeba_in	mapflag	fvf
+// aldebaran	mapflag	fvf
+// ama_in01	mapflag	fvf
+// ama_in02	mapflag	fvf
+// amatsu	mapflag	fvf
+// cmd_in01	mapflag	fvf
+// cmd_in02	mapflag	fvf
+// comodo	mapflag	fvf
+// gef_tower	mapflag	fvf
+// geffen	mapflag	fvf
+// geffen_in	mapflag	fvf
+// gon_in	mapflag	fvf
+// gonryun	mapflag	fvf
+// gon_test	mapflag	fvf
+// in_hunter	mapflag	fvf
+// in_moc_16	mapflag	fvf
+// in_orcs01	mapflag	fvf
+// izlude_in	mapflag	fvf
+// izlude	mapflag	fvf
+// hugel	mapflag	fvf
+// hu_in01	mapflag	fvf
+// lighthalzen	mapflag	fvf
+// lhz_airport	mapflag	fvf
+// lhz_in01	mapflag	fvf
+// lhz_in02	mapflag	fvf
+// lhz_in03	mapflag	fvf
+// louyang	mapflag	fvf
+// lou_in01	mapflag	fvf
+// lou_in02	mapflag	fvf
+// moc_castle	mapflag	fvf
+// monk_in	mapflag	fvf
+// morocc_in	mapflag	fvf
+// morocc	mapflag	fvf
+// mosk_in	mapflag	fvf
+// nif_in	mapflag	fvf
+// payon_in01	mapflag	fvf
+// payon_in02	mapflag	fvf
+// payon_in03	mapflag	fvf
+// payon	mapflag	fvf
+// pay_arche	mapflag	fvf
+// prt_are_in	mapflag	fvf
+// prt_are01	mapflag	fvf
+// prt_castle	mapflag	fvf
+// prt_church	mapflag	fvf
+// prt_in	mapflag	fvf
+prontera	mapflag	fvf
+prt_fild08	mapflag	fvf
+// sec_in01	mapflag	fvf
+// job_sword1	mapflag	fvf
+// um_in	mapflag	fvf
+// umbala	mapflag	fvf
+// xmas_in	mapflag	fvf
+// xmas	mapflag	fvf
+// yuno_in01	mapflag	fvf
+// yuno_in03	mapflag	fvf
+// yuno_in04	mapflag	fvf
+// yuno_in05	mapflag	fvf
+// yuno	mapflag	fvf
+// yuno_pre	mapflag	fvf
+// y_airport	mapflag	fvf
+// rachel	mapflag	fvf
+// ra_in01	mapflag	fvf
+// ra_temin	mapflag	fvf
+// airplane	mapflag	fvf
+// airport	mapflag	fvf
+// einbech	mapflag	fvf
+// einbroch	mapflag	fvf
+// ein_in01	mapflag	fvf
+// ayothaya	mapflag	fvf
+// veins	mapflag	fvf
+// ve_in	mapflag	fvf
+// ve_in02	mapflag	fvf
+// cave	mapflag	fvf

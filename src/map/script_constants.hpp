@@ -536,6 +536,7 @@
 	export_constant(MF_SPECIALPOPUP);
 	export_constant(MF_NOMACROCHECKER);
 	export_constant(MF_INVINCIBLE_TIME);
+	export_constant(MF_FVF);
 
 	/* setcell types */
 	export_constant(CELL_WALKABLE);
@@ -1016,6 +1017,11 @@
 	export_constant(SC_BROKENARMOR);
 	export_constant(SC_BROKENWEAPON);
 	export_constant(SC_HALLUCINATION);
+	export_constant(SC_RACE1);
+	export_constant(SC_RACE2);
+	export_constant(SC_FACTION1);
+	export_constant(SC_FACTION2);
+	export_constant(SC_FACTION_AURA);
 	export_constant(SC_WEIGHT50);
 	export_constant(SC_WEIGHT90);
 	export_constant(SC_ASPDPOTION0);
@@ -2044,6 +2050,10 @@
 	export_constant(EFST_BROKENARMOR);
 	export_constant(EFST_BROKENWEAPON);
 	export_constant(EFST_ILLUSION);
+	export_constant(EFST_RACE1);
+	export_constant(EFST_RACE2);
+	export_constant(EFST_FACTION1);
+	export_constant(EFST_FACTION2);
 	export_constant(EFST_WEIGHTOVER50);
 	export_constant(EFST_WEIGHTOVER90);
 	export_constant(EFST_ATTHASTE_POTION1);
@@ -2661,6 +2671,7 @@
 	export_constant(EFST_GENSOU);
 	export_constant(EFST_AKAITSUKI);
 	export_constant(EFST_TETANY);
+	export_constant(EFST_FACTION_AURA);
 	export_constant(EFST_GM_BATTLE);
 	export_constant(EFST_GM_BATTLE2);
 	export_constant(EFST_2011RWC_SCROLL);
@@ -4333,6 +4344,7 @@
 	export_constant(CHAN_TYPE_PRIVATE);
 	export_constant(CHAN_TYPE_MAP);
 	export_constant(CHAN_TYPE_ALLY);
+	export_constant(CHAN_TYPE_FACTION);
 	export_constant(CHAN_OPT_BASE);
 	export_constant(CHAN_OPT_ANNOUNCE_SELF);
 	export_constant(CHAN_OPT_ANNOUNCE_JOIN);
@@ -10448,6 +10460,7 @@
 	export_constant(INF2_SHOWSCALE);
 	export_constant(INF2_IGNOREGTB);
 	export_constant(INF2_TOGGLEABLE);
+	export_constant(INF2_FACTION);
 	export_constant(INF2_IGNORENONCRITATKBONUS);
 
 	/* skill no near npc flags */
@@ -10527,6 +10540,7 @@
 	export_constant(BCT_GUILDALLY);
 	export_constant(BCT_NEUTRAL);
 	export_constant(BCT_SAMEGUILD);
+	export_constant(BCT_FACTION);
 	export_constant(BCT_ALL);
 	export_constant(BCT_WOS);
 	export_constant(BCT_GUILD);
@@ -10687,6 +10701,7 @@
 	export_constant(UNT_VENOM_SWAMP);
 	export_constant(UNT_CONFLAGRATION);
 	export_constant(UNT_CANE_OF_EVIL_EYE);
+	export_constant(UNT_FACTION_AURA);
 	export_constant(UNT_TWINKLING_GALAXY);
 	export_constant(UNT_STAR_CANNON);
 	export_constant(UNT_GRENADES_DROPPING);

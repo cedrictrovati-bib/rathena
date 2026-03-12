@@ -23,6 +23,7 @@
 #include "battleground.hpp"
 #include "clif.hpp"
 #include "elemental.hpp"
+#include "faction.hpp"
 #include "guild.hpp"
 #include "homunculus.hpp"
 #include "itemdb.hpp"
@@ -3895,6 +3896,14 @@ int32 status_calc_pc_sub(map_session_data* sd, uint8 opt)
 	pc_delautobonus(*sd, sd->autobonus2, true);
 	pc_delautobonus(*sd, sd->autobonus3, true);
 
+	// Complete Faction System
+	if( sd->status.faction_id )
+	{
+		faction_calc(sd);
+		if (!calculating)
+			return 1;
+	}
+
 	if (sd->pd != nullptr) {
 		pet_delautobonus(*sd, sd->pd->autobonus, true);
 		pet_delautobonus(*sd, sd->pd->autobonus2, true);
@@ -6560,6 +6569,9 @@ void status_calc_bl_(block_list* bl, std::bitset<SCB_MAX> flag, uint8 opt)
 
 	if( bl->type == BL_PET )
 		return; // Pets are not affected by statuses
+
+	if (bl->type & BL_CHAR && !(bl->type & BL_PC))
+		faction_calc(bl);
 
 	if (opt&SCO_FIRST && bl->type == BL_MOB)
 		return; // Assume there will be no statuses active
@@ -10791,6 +10803,7 @@ static bool status_change_start_post_delay(block_list* src, block_list* bl, sc_t
 			case SC_GLORYWOUNDS:
 			case SC_SOULCOLD:
 			case SC_HAWKEYES:
+			case SC_FACTION_AURA:
 				if( sce->val4 && !val4 ) // You cannot override master guild aura
 					return false;
 				break;
@@ -13350,6 +13363,22 @@ static bool status_change_start_post_delay(block_list* src, block_list* bl, sc_t
 			if (val1 || val2)
 				status_zap(bl, val1 ? val1 : 0, val2 ? val2 : 0);
 			break;
+			// Complete Faction System
+		case SC_HIDING:
+		case SC_CLOAKING:
+		case SC_CHASEWALK:
+		case SC_CLOAKINGEXCEED:
+		case SC__INVISIBILITY:
+		case SC_CAMOUFLAGE:
+			if( faction_get_id(bl) )
+			{
+				clif_clearunit_area(*bl,CLR_OUTSIGHT);
+				map_foreachinrange(faction_aura_clear, bl, AREA_SIZE, BL_PC, bl);
+				if( sd && battle_config.faction_aura_bl&BL_PC &&
+					((battle_config.faction_aura_settings&1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings&2) )
+					clif_refresh(sd);
+			}
+			break;
 	}
 
 	if( opt_flag[SCF_ONTOUCH] && sd && !sd->npc_ontouch_.empty() )
@@ -14117,6 +14146,17 @@ int32 status_change_end( block_list* bl, enum sc_type type, int32 tid ){
 
 	if(opt_flag[SCF_ONTOUCH] && sd && !sd->state.warping && map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
 		npc_touch_area_allnpc(sd,bl->m,bl->x,bl->y); // Trigger on-touch event.
+
+	// Complete Faction System
+	if( faction_get_id(bl) && (
+		type == SC_HIDING ||
+		type == SC_CLOAKING ||
+		type == SC_CHASEWALK ||
+		type == SC__INVISIBILITY ||
+		type == SC_CAMOUFLAGE ||
+		type == SC_CLOAKINGEXCEED)
+	)
+		faction_show_aura(bl);
 
 	// Needed to be here to make sure OPT1_STONEWAIT has been cleared from the target (only on natural expiration of the stone wait timer)
 	if (type == SC_STONEWAIT && tid != INVALID_TIMER)
@@ -14920,6 +14960,7 @@ TIMER_FUNC(status_change_timer){
 	case SC_GLORYWOUNDS:
 	case SC_SOULCOLD:
 	case SC_HAWKEYES:
+	case SC_FACTION_AURA:
 		// They only end by status_change_end
 		sc_timer_next(600000 + tick);
 		return 0;

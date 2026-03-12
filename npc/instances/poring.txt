@@ -12,7 +12,7 @@ pay_fild04,34,177,5	script	Terrified Poring#kpg_ent	1002,{
 	next;
 
 	if (instance_id() == 0) {
-		if (checkquest(40402, PLAYTIME) == 0 || checkquest(40402, PLAYTIME) == 1) {
+		if (checkquest(40401, PLAYTIME) == 0 || checkquest(40401, PLAYTIME) == 1) {
 			mes "The King is resting. Come back later.";
 			close;
 		}
@@ -28,7 +28,6 @@ pay_fild04,34,177,5	script	Terrified Poring#kpg_ent	1002,{
 				if (getcharid(0) != getpartyleader(.@party_id, 2)) { mes "Only the leader can start."; close; }
 				if (instance_create(.@md_name$) < 0) { mes "Failed to create."; close; }
 				if (checkquest(40401) == -1) setquest 40401;
-				if (checkquest(40402) == -1) setquest 40402;
 			}
 			instance_enter(.@md_name$);
 			end;

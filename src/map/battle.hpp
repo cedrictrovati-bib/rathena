@@ -66,10 +66,11 @@ enum e_battle_check_target : uint32 {
 	BCT_GUILDALLY	= 0x080000, ///< Only allies, NOT guildmates
 	BCT_NEUTRAL		= 0x100000, ///< Neutral target
 	BCT_SAMEGUILD	= 0x200000, ///< Guildmates, No Guild Allies
+	BCT_FACTION		= 0x400000, ///< Faction
 
-	BCT_ALL			= 0x3F0000, ///< All targets
+	BCT_ALL			= 0x7F0000, ///< All targets
 
-	BCT_WOS			= 0x400000, ///< Except self and your master
+	BCT_WOS			= 0x800000, ///< Except self and your master
 	BCT_SLAVE		= BCT_SELF|BCT_WOS,				///< Does not hit yourself/master, but hits your/master's slaves
 	BCT_GUILD		= BCT_SAMEGUILD|BCT_GUILDALLY,	///< Guild AND Allies (BCT_SAMEGUILD|BCT_GUILDALLY)
 	BCT_NOGUILD		= BCT_ALL&~BCT_GUILD,			///< Except guildmates
@@ -543,6 +544,41 @@ struct Battle_Config
 	int32 bg_magic_damage_rate;
 	int32 bg_misc_damage_rate;
 	int32 bg_flee_penalty;
+
+	// Complete Faction System
+	int32 faction_status_bl;
+	int32 fvf_monster_ai;
+	int32 faction_chat_settings;
+	int32 fvf_hp_bar;
+	int32 fvf_min_lvl;
+	int32 faction_points;
+	int32 fvf_visual_size;
+	int32 fvf_add_hp_rate;
+	int32 fvf_add_sp_rate;
+	int32 fvf_short_damage_rate;
+	int32 fvf_long_damage_rate;
+	int32 fvf_weapon_damage_rate;
+	int32 fvf_magic_damage_rate;
+	int32 fvf_misc_damage_rate;
+	int32 chat_leader;
+	int32 fvf_change_ccolor;
+	int32 fvf_change_hcolor;
+	int32 fvf_change_hstyle;
+	int32 faction_heal_settings;
+	int32 faction_heal_bl;
+	int32 faction_party_settings;
+	int32 faction_guild_settings;
+	int32 faction_size_bl;
+	int32 faction_aura_bl;
+	int32 faction_aura_settings;
+	int32 faction_trade_settings;
+	int32 faction_ally_info_bl;
+	int32 faction_npc_settings;
+	int32 faction_fvf_notify;
+	int32 faction_fvf_notify_color;
+	int32 fvf_in_all_maps;
+	int32 faction_disc_min;
+	int32 faction_disc_max;
 
 	// rAthena
 	int32 max_third_parameter;
