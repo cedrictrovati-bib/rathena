@@ -5120,6 +5120,8 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 			clif_set_unit_idle( bl, false, SELF, sd );
 	}
 
+	clif_refresh_clothcolor(*bl, SELF, sd);
+
 	/*if( battle_config.fvf_change_ccolor && (fdb = faction_db.find(faction_get_id(bl))) != NULL && fdb->ccolor )
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,(map_getmapflag( bl->m, MF_FVF) || battle_config.fvf_change_ccolor == 2) ? fdb->ccolor : vd->look[LOOK_CLOTHES_COLOR],SELF);
 	else if(vd->look[LOOK_CLOTHES_COLOR])
@@ -5228,6 +5230,8 @@ void clif_getareachar_unit( map_session_data* sd,block_list *bl ){
 	}
 
 	clif_hat_effects( *bl, SELF, *sd );
+
+	faction_getareachar_unit(sd, bl);
 }
 
 //Modifies the type of damage according to target status changes [Skotlex]
@@ -10015,6 +10019,10 @@ void clif_refresh(map_session_data *sd)
 		clif_clearunit_single( sd->id, CLR_DEAD, *sd );
 	else
 		clif_changed_dir(*sd, SELF);
+
+	if (sd->status.faction_id) // Complete Faction System
+		faction_getareachar_unit(sd, sd);
+
 	clif_efst_status_change_sub(sd,sd,SELF);
 
 	//Issue #2143
@@ -10056,11 +10064,22 @@ void clif_name( const block_list* src, const block_list* bl, send_target target 
 			packet.packet_id = HEADER_ZC_ACK_REQNAMEALL;
 			packet.gid = bl->id;
 
+			std::shared_ptr<s_faction_db> fdb;
+
 			map_session_data *sd = (map_session_data *)bl;
 
 			//Requesting your own "shadow" name. [Skotlex]
 			if( src == bl && target == SELF && sd->disguise ){
 				packet.gid = -bl->id;
+			}
+
+			if( map_getmapflag( bl->m, MF_FVF)
+				&& ((!faction_check_name(src, bl) && battle_config.faction_chat_settings&2)
+					|| (faction_check_name(src, bl) && battle_config.faction_chat_settings&4))
+				&& (fdb = faction_db.find(sd->status.faction_id)) != nullptr ) {
+				safestrncpy( packet.name, fdb->pl_name.c_str(), NAME_LENGTH );
+				clif_send( &packet, sizeof(packet), src, target );
+				return;
 			}
 
 			if( sd->fakename[0] ) {
@@ -10899,6 +10918,22 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 
 	clif_refresh_clothcolor( *sd, SELF );
 
+	/*{
+		std::shared_ptr<s_faction_db> fdb;
+		if( battle_config.fvf_change_ccolor && (fdb = faction_db.find(sd->status.faction_id)) != NULL && fdb->ccolor)
+			clif_refreshlook(sd,sd->id,LOOK_CLOTHES_COLOR,(map_getmapflag( sd->m, MF_FVF) || battle_config.fvf_change_ccolor == 2) ? fdb->ccolor : sd->vd.look[LOOK_CLOTHES_COLOR],SELF);
+		else if(sd->vd.look[LOOK_CLOTHES_COLOR])
+			clif_refreshlook(sd,sd->id,LOOK_CLOTHES_COLOR,sd->vd.look[LOOK_CLOTHES_COLOR],SELF);
+		if( battle_config.fvf_change_hcolor && (fdb = faction_db.find(sd->status.faction_id)) != NULL && fdb->hcolor )
+			clif_refreshlook(sd,sd->id, LOOK_HAIR_COLOR, (map_getmapflag( sd->m, MF_FVF) || battle_config.fvf_change_hcolor == 2) ? fdb->hcolor : sd->vd.look[LOOK_HAIR_COLOR],SELF);
+		else if(sd->vd.look[LOOK_HAIR_COLOR])
+			clif_refreshlook(sd,sd->id,LOOK_HAIR_COLOR,sd->vd.look[LOOK_HAIR_COLOR],SELF);
+		if( battle_config.fvf_change_hstyle && (fdb = faction_db.find(sd->status.faction_id)) != NULL && fdb->hstyle )
+			clif_refreshlook(sd,sd->id,LOOK_HAIR,(map_getmapflag( sd->m, MF_FVF) || battle_config.fvf_change_hstyle == 2) ? fdb->hstyle : sd->vd.look[LOOK_HAIR],SELF);
+		else if(sd->vd.look[LOOK_HAIR])
+			clif_refreshlook(sd,sd->id,LOOK_HAIR,sd->vd.look[LOOK_HAIR],SELF);
+	}*/
+
 	// item
 	clif_inventorylist(sd);  // inventory list first, otherwise deleted items in pc_checkitem show up as 'unknown item'
 	pc_checkitem(sd);
@@ -10944,7 +10979,29 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 		clif_party_hp( *sd ); // Show hp after displacement [LuzZza]
 	}
 
-	if( sd->bg_id ) clif_bg_hp(sd); // BattleGround System
+	if( sd->bg_id )
+		clif_bg_hp(sd); // BattleGround System
+
+	if( sd->status.faction_id ) { // Complete Faction System
+		if( map_getmapflag( sd->m, MF_FVF) ) {
+			std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+			std::string notif_fvf_entermap;
+			faction_hp(sd);
+			clif_map_property(sd, MAPPROPERTY_AGITZONE, SELF);
+			if(battle_config.faction_fvf_notify&1){
+				notif_fvf_entermap = sd->status.name;
+				notif_fvf_entermap = notif_fvf_entermap + " from faction [" + fdb->name.c_str() + "] entered in the map.";
+				clif_messagecolor(sd, battle_config.faction_fvf_notify_color, notif_fvf_entermap.c_str(), true, ALL_SAMEMAP);
+				notif_fvf_entermap.clear();
+			}
+			if(battle_config.faction_fvf_notify&2){
+				notif_fvf_entermap = "You have entered in a Faction vs Faction map.";
+				clif_broadcast2(sd, notif_fvf_entermap.c_str(), notif_fvf_entermap.size(), battle_config.faction_fvf_notify_color, FW_NORMAL, 12, 0, 0, SELF);
+			}
+		}
+		if( faction_check_leader(sd) )
+			faction_factionaura(sd);
+	}
 
 	if(!pc_isinvisible(sd) && mapdata->getMapFlag(MF_PVP)) {
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
@@ -11648,12 +11705,47 @@ void clif_parse_GlobalMessage(int32 fd, map_session_data* sd)
 
 	length = strlen(output) + 1;
 
-	// send back message to the speaker
-	WFIFOHEAD(fd,4+length);
-	WFIFOW(fd,0) = 0x8e;
-	WFIFOW(fd,2) = (uint16)(4+length);
-	safestrncpy(WFIFOCP(fd,4), output, length );
-	WFIFOSET(fd, WFIFOW(fd,2));
+	if( !sd->chatID && faction_check_chat(sd) ) {
+		std::shared_ptr<s_faction_db> fdb = faction_db.find(sd->status.faction_id);
+		std::string outputf, separator(" : ");
+
+		if(battle_config.faction_chat_settings&2 || battle_config.faction_chat_settings&4){
+			outputf = fdb->pl_name.c_str() + separator + message;
+			outputf.resize(CHAT_SIZE_MAX+NAME_LENGTH*2);
+		}
+
+		if( battle_config.faction_chat_settings&1 ) { // 1 = Colored messages
+			if( battle_config.faction_chat_settings&2 ) // 2 = Hide names from other factions (except Alliance)
+				clif_messagecolor(sd, fdb->chat_color, outputf.c_str(), true, FVF_OTHER_AREA_CHAT);
+			else
+				clif_messagecolor(sd, fdb->chat_color, output, true, FVF_OTHER_AREA_CHAT);
+
+			if( battle_config.faction_chat_settings&4 )// Hide names for your own faction (and ally)
+				clif_messagecolor(sd, fdb->chat_color,  outputf.c_str(), true, FACTION_AREA_WOS);
+			else
+				clif_messagecolor(sd, fdb->chat_color,  output, true, FACTION_AREA_WOS);
+		} else {
+			if( battle_config.faction_chat_settings&2 ) // 2 = Hide names from other factions (except Alliance)
+				clif_GlobalMessage(*sd,outputf.c_str(),FVF_OTHER_AREA_CHAT);
+			else
+				clif_GlobalMessage(*sd,output,FVF_OTHER_AREA_CHAT);
+
+			if( battle_config.faction_chat_settings&4 )// Hide names for your own faction (and ally)
+				clif_GlobalMessage(*sd,outputf.c_str(),FACTION_AREA_WOS);
+			else
+				clif_GlobalMessage(*sd,output,FACTION_AREA_WOS);
+		}
+	} else {
+		// send message to others (using the send buffer for temp. storage)
+		clif_GlobalMessage(*sd,output,sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
+
+		// send back message to the speaker
+		WFIFOHEAD(fd,4+length);
+		WFIFOW(fd,0) = 0x8e;
+		WFIFOW(fd,2) = (uint16)(4+length);
+		safestrncpy(WFIFOCP(fd,4), output, length );
+		WFIFOSET(fd, WFIFOW(fd,2));
+	}
 
 #ifdef PCRE_SUPPORT
 	// trigger listening npcs

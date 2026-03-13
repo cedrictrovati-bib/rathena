@@ -171,3 +171,19 @@ Body:
     HitCount: 1
     Requires:
         SpCost: 1
+  - Id: 10020
+    Name: FACTION_AURA
+    Description: Faction Aura
+    MaxLevel: 1
+    Flags:
+      Faction: true
+    SplashArea: 5
+    Duration1: 300000
+    Unit:
+      Id: FACTION_AURA
+      Layout: 2
+      Interval: -1
+      Target: Faction
+      Flag:
+       NoMob: true
+    Status: Faction_Aura

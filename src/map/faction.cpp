@@ -583,41 +583,45 @@ struct voting_data* voting_search(int char_id)
 	return (struct voting_data*)idb_get(voting_db, char_id);
 }
 
+/**
+ * Charge le statut de leader pour un joueur lors de sa connexion
+ * @param sd : Données de session du joueur
+ */
+void faction_load_leader(map_session_data* sd) {
+	char reg_name[CHAT_SIZE_MAX];
+	std::shared_ptr<s_faction_db> fdb;
+
+	if ((fdb = faction_db.find(faction_get_id(sd))) == nullptr)
+		return;
+
+	sprintf(reg_name, "$faction_leader_id_%d", sd->status.faction_id);
+	int32 leader_id = mapreg_readreg(add_str(reg_name));
+
+	if (fdb->leader_id != leader_id) {
+		fdb->leader_id = leader_id;
+	}
+}
+
 int faction_check_leader(map_session_data* sd)
 {
 	std::shared_ptr<s_faction_db> fdb;
 
 	if (sd == nullptr) {
-		ShowError("faction_check_leader: sd == nullptr\n");
 		return 0;
 	}
 
-	ShowError("faction_check_leader: char_id=%d name=%s faction_id=%d\n",
-		sd->status.char_id, sd->status.name, sd->status.faction_id);
-
 	if (sd->status.faction_id <= 0) {
-		ShowError("faction_check_leader: player has no faction\n");
 		return 0;
 	}
 
 	if ((fdb = faction_db.find(sd->status.faction_id)) == nullptr) {
-		ShowError("faction_check_leader: faction_id=%d not found in faction_db\n",
-			sd->status.faction_id);
 		return 0;
 	}
 
-	ShowError("faction_check_leader: faction_id=%d faction_name=%s leader_id=%d player_char_id=%d\n",
-		fdb->id, fdb->name.c_str(), fdb->leader_id, sd->status.char_id);
-
-	if (fdb->leader_id == 0)
-		ShowError("faction_check_leader: faction %d has leader_id=0\n", fdb->id);
-
 	if (fdb->leader_id == sd->status.char_id) {
-		ShowError("faction_check_leader: TRUE\n");
 		return 1;
 	}
 
-	ShowError("faction_check_leader: FALSE\n");
 	return 0;
 }
 
@@ -916,13 +920,16 @@ void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 			return;
 	}
 
-	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
+	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2)) {
 		return;
+	}
 
 	if (battle_config.faction_aura_bl & bl->type) {
-		for (i = 0; i < MAX_AURA_EFF; i++)
-			if (fdb->aura[i] > 0)
+		for (i = 0; i < MAX_AURA_EFF; i++) {
+			if (fdb->aura[i] > 0) {
 				clif_specialeffect_single(bl, fdb->aura[i], fd);
+			}
+		}
 	}
 }
 

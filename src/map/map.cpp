@@ -634,6 +634,7 @@ int32 map_moveblock(block_list *bl, int32 x1, int32 y1, t_tick tick)
 				if (sc->getSCE(SC_HAWKEYES))
 					skill_unit_move_unit_group(skill_id2group(sc->getSCE(SC_HAWKEYES)->val4), bl->m, x1-x0, y1-y0);
 			}
+			/* Faction Aura Moving */
 			if (bl->type == BL_PC && faction_check_leader(((TBL_PC*)bl)) && sc->getSCE(SC_FACTION_AURA)) { // Complete Faction System
 				skill_unit_move_unit_group(skill_id2group(sc->getSCE(SC_FACTION_AURA)->val4), bl->m, x1 - x0, y1 - y0);
 			}

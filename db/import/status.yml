@@ -87,7 +87,13 @@ Body:
       NoClearance: true
       NoForcedEnd: true
   - Status: Faction_Aura
-    Icon: EFST_PROVOKE
-    DurationLookup: FACTION_AURA
+    Icon: EFST_FACTION_AURA
+    Flags:
+      NoClearbuff: true
+      NoSave: true
+      NoDispell: true
+      NoBanishingBuster: true
+      NoClearance: true
+      NoForcedEnd: true
     CalcFlags:
       All: true

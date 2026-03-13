@@ -96,7 +96,7 @@ public:
 
 extern FactionDatabase faction_db;
 
-#define faction_check_chat(sd) ( (sd)->status.faction_id>0 && map_getmapflag((sd)->bl.m, MF_FVF) && battle_config.faction_chat_settings )
+#define faction_check_chat(sd) ( (sd)->status.faction_id>0 && map_getmapflag((sd)->m, MF_FVF) && battle_config.faction_chat_settings )
 
 #define faction_check_hp(sd,dstsd) ( (sd)->status.faction_id>0 && map_getmapflag((dstsd)->m, MF_FVF) && battle_config.fvf_hp_bar && \
 		(sd)->status.faction_id == (dstsd)->status.faction_id )
@@ -115,6 +115,7 @@ extern FactionDatabase faction_db;
 class map_session_data;
 struct block_list;
 
+void faction_load_leader(map_session_data*);
 void faction_change_leader(int, int);
 void faction_voting_add(map_session_data*, map_session_data*, int);
 void faction_voting_finish(int);

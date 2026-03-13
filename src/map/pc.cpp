@@ -2412,6 +2412,7 @@ void pc_reg_received(map_session_data *sd)
  		std::shared_ptr<s_faction_db> fdb;
 
  		if( (fdb = faction_db.find(sd->status.faction_id)) != nullptr ){
+			faction_load_leader(sd);
  			channel_fjoin(sd,1);
  
  			#ifdef FUNCTORAURA
