@@ -40,10 +40,11 @@ function	script	F_DEVIL_SQUARE_REWARD	{
     set .@give_reward, getarg(0);
 
     if (getarg(0) == 0){
-        getitem 35001,1;
+        getitem 12208,1;
         .@msg1$ = "Gratz to cleaning this branch, here is something for your troubles."; 
 		.@msg2$ = "Do you want to get back to the middle?";
 		.@select1$ = "Yes:No";
+	    
         mes .@msg1$;
         next;
         mes .@msg2$;
@@ -69,7 +70,7 @@ close;
 }
 
 ordeal_1-1,273,150,4	script	Auberon#devilsquare_01a	628,{
-	//callfunc "F_NPC_NAME";
+	callfunc "F_NPC_NAME";
 	if (#devilsquare_01a == 0){
 		set #devilsquare_01a,1;
         callfunc "F_DEVIL_SQUARE_REWARD",0;
@@ -79,7 +80,7 @@ ordeal_1-1,273,150,4	script	Auberon#devilsquare_01a	628,{
 }
 
 ordeal_1-1,149,27,4	script	Auberon#devilsquare_01b	628,{
-	//callfunc "F_NPC_NAME";
+	callfunc "F_NPC_NAME";
 	if (#devilsquare_01b == 0){
 		set #devilsquare_01b,1;
         callfunc "F_DEVIL_SQUARE_REWARD",0;
@@ -89,7 +90,7 @@ ordeal_1-1,149,27,4	script	Auberon#devilsquare_01b	628,{
 }
 
 ordeal_1-1,28,149,4	script	Auberon#devilsquare_01c	628,{
-	//callfunc "F_NPC_NAME";
+	callfunc "F_NPC_NAME";
 	if (#devilsquare_01c == 0){
 		set #devilsquare_01c,1;
         callfunc "F_DEVIL_SQUARE_REWARD",0;
@@ -99,7 +100,7 @@ ordeal_1-1,28,149,4	script	Auberon#devilsquare_01c	628,{
 }
 
 ordeal_1-1,149,271,4	script	Auberon#devilsquare_01d	628,{
-	//callfunc "F_NPC_NAME";
+	callfunc "F_NPC_NAME";
 	if (#devilsquare_01d == 0){
 		set #devilsquare_01d,1;
         callfunc "F_DEVIL_SQUARE_REWARD",0;
@@ -109,11 +110,13 @@ ordeal_1-1,149,271,4	script	Auberon#devilsquare_01d	628,{
 }
 
 ordeal_1-1,150,149,4	script	Auberon#devilsquare_01e	628,{
+	callfunc "F_NPC_NAME";
+
     if (#devilsquare_01e == 0){
         set #devilsquare_01e,1;
         callfunc "F_REWARD_EVENT"
                 , strnpcinfo(1)
-                , 35001
+                , 12208
                 , 1;
     } else {
         callfunc "F_NOREWARD_EVENT"
@@ -122,7 +125,6 @@ ordeal_1-1,150,149,4	script	Auberon#devilsquare_01e	628,{
 }
 
 prontera,155,171,4	script	DevilSquare#devilsquare_01	657,{
-    //callfunc "F_NPC_NAME";
 	mes "Hi, do you want me to teleport you inside the Devil Square event?";
 	.@message$ = "Yes please!:No I'm scared.";
 	if (select(.@message$) == 1)
@@ -136,7 +138,7 @@ OnInit:
 
     $devil_square_step = 0;
 
-    // On désactive tous les warps pour aller sur les branches
+    // On d sactive tous les warps pour aller sur les branches
     disablenpc("ord11-1");
     disablenpc("ord11-3");
     disablenpc("ord11-5");
@@ -146,34 +148,34 @@ OnInit:
     disablenpc("ord11-13");
     disablenpc("ord11-15");
 
-    // On désactive les NPCs qui donnent les rewards
+    // On d sactive les NPCs qui donnent les rewards
     disablenpc("Auberon#devilsquare_01a");
     disablenpc("Auberon#devilsquare_01b");
     disablenpc("Auberon#devilsquare_01c");
     disablenpc("Auberon#devilsquare_01d");
     disablenpc("Auberon#devilsquare_01e");
 
-    // On désactive le NPC qui warp sur la map
-    enablenpc("DevilSquare#devilsquare_01");
-	donpcevent "devilsquare_01::OnFirstBranch";
+    // On d sactive le NPC qui warp sur la map
+    disablenpc("DevilSquare#devilsquare_01");
 
     // Listes des mobs, boss et nombre de mob a pop en fonction du nombre de personnes sur la map
-    setarray .Mob_To_Summon_Easy[0],1051,1053,1054,1048,1403,1404,1401,1405,1023,1273,1213,1189,1670,1676,1365,1668,1713,1714,1716,1717,1777,1778,1775,1776,1772,1771,1769,1770,1865,1864,1867,1870;
-    setarray .Boss_To_Summon_Easy[0],1582,1147,1418,1312;
+    setarray .Mob_To_Summon_Easy[0],1002,1113,1031,1242,1095,1105,1160,1176,1408,1410,1416,1412,1314,1315,1318,1319,1403,1404,1401,1405,1762,1761,1755,1754,1275,1737,1736,1735,1772,1771,1769,1770;
+    setarray .Boss_To_Summon_Easy[0],1582,1147,1418,1312,1492,1765,1734,1768;
     setarray .Number_To_Summon_Easy[0],40,40,40,40,40,40,40,40,30,30,30,30,30,30,30,30,30,30,30,30,15,15,15,15,20,20,20,20,20,20,20,20;
 
     setarray .Mob_To_Summon_Normal[0],1051,1053,1054,1048,1403,1404,1401,1405,1023,1273,1213,1189,1670,1676,1365,1668,1713,1714,1716,1717,1777,1778,1775,1776,1772,1771,1769,1770,1865,1864,1867,1870;
     setarray .Boss_To_Summon_Normal[0],1086,1492,1190,1685,1719,1779,1768,1871;
     setarray .Number_To_Summon_Normal[0],40,40,40,40,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30;
-	
+
     setarray .Mob_To_Summon_Hard[0],1403,1404,1401,1405,1670,1676,1365,1668,1777,1778,1775,1776,1829,1830,1831,1833,1275,1737,1736,1735,1634,1635,1638,1639,1865,1864,1867,1870,1713,1714,1716,1717;
     setarray .Boss_To_Summon_Hard[0],1492,1685,1779,1839,1734,1644,1871,1813;
     setarray .Number_To_Summon_Hard[0],30,30,30,30,30,30,30,30,30,30,30,30,5,5,5,10,20,20,20,20,5,5,5,5,30,30,30,30,30,30,30,30;
 
 	
-		
-		//areamonster "ordeal_1-1",195,186,258,257, "--en--", .Mob_To_Summon_Easy[1], 10, "devilsquare_01::OnBoss";
+    enablenpc("DevilSquare#devilsquare_01");
 	
+    donpcevent "devilsquare_01::OnFirstBranch";
+
     end;
 
 OnWed2000:
@@ -203,104 +205,87 @@ OnWed2100:
     end;
 
 OnFirstBranch:
+    enablenpc("ord11-11");
     announce "A portal just appeared.",0x00BFFF;
-
-	
-		areamonster "ordeal_1-1",195,186,258,257, "--en--", .Mob_To_Summon_Easy[1], 10, "devilsquare_01::OnBoss";
-	
-    copyarray .Mob_To_Summon[0],.Mob_To_Summon_Easy[0],32;
-    copyarray .Boss_To_Summon[0],.Boss_To_Summon_Easy[0],8;
-    copyarray .Number_To_Summon[0],.Number_To_Summon_Easy[0],32;
-
-    //set .@mapusers, getmapusers("ordeal_1-1");
-    //if (.@mapusers < 20){
-    //    copyarray .Mob_To_Summon[0],.Mob_To_Summon_Easy[0],32;
-    //    copyarray .Boss_To_Summon[0],.Boss_To_Summon_Easy[0],8;
-    //    copyarray .Number_To_Summon[0],.Number_To_Summon_Easy[0],32;
-    //} else if (.@mapusers < 40) {
-    //    copyarray .Mob_To_Summon[0],.Mob_To_Summon_Normal[0],32;
-    //    copyarray .Boss_To_Summon[0],.Boss_To_Summon_Normal[0],8;
-    //    copyarray .Number_To_Summon[0],.Number_To_Summon_Normal[0],32;
-    //} else {
-    //    copyarray .Mob_To_Summon[0],.Mob_To_Summon_Hard[0],32;
-    //    copyarray .Boss_To_Summon[0],.Boss_To_Summon_Hard[0],8;
-    //    copyarray .Number_To_Summon[0],.Number_To_Summon_Hard[0],32;
-    //}
-	
+    set .@mapusers, getmapusers("ordeal_1-1");
+    if (.@mapusers > 20){
+        copyarray .Mob_To_Summon[0],.Mob_To_Summon_Easy[0],32;
+        copyarray .Boss_To_Summon[0],.Boss_To_Summon_Easy[0],8;
+        copyarray .Number_To_Summon[0],.Number_To_Summon_Easy[0],32;
+    } else if (.@mapusers > 40) {
+        copyarray .Mob_To_Summon[0],.Mob_To_Summon_Normal[0],32;
+        copyarray .Boss_To_Summon[0],.Boss_To_Summon_Normal[0],8;
+        copyarray .Number_To_Summon[0],.Number_To_Summon_Normal[0],32;
+    } else {
+        copyarray .Mob_To_Summon[0],.Mob_To_Summon_Hard[0],32;
+        copyarray .Boss_To_Summon[0],.Boss_To_Summon_Hard[0],8;
+        copyarray .Number_To_Summon[0],.Number_To_Summon_Hard[0],32;
+    }
     for (.i = 0; .i < 4 ; .i++){
-	
-		.idx = ($devil_square_step * 4) + .i;
-		.mob_id = .Mob_To_Summon[.idx];
-		.mob_qty = .Number_To_Summon[.idx];
-
-		// Ensure we have both a valid ID and a quantity greater than 0
-		if (.mob_id > 0 && .mob_qty > 0) {		
-			areamonster "ordeal_1-1",195,186,258,257, "--en--", .mob_id, .mob_qty, "devilsquare_01::OnBoss";
-		}
-	}
+        areamonster "ordeal_1-1",195,186,258,257,getmonsterinfo(.Mob_To_Summon[$devil_square_step*4 + .i],MOB_NAME),.Mob_To_Summon[$devil_square_step*4 + .i],.Number_To_Summon[$devil_square_step*4 + .i],"devilsquare_01::OnBoss";
+    }
     end;
 OnBoss:
     if (mobcount("ordeal_1-1","devilsquare_01::OnBoss") < 1) {
         switch($devil_square_step){
             case 0: // Cas 1
-                areamonster "ordeal_1-1",239,239,239,239,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSecondBranch",2;
+                areamonster "ordeal_1-1",239,239,239,239,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSecondBranch",2;
                 .xl =  208;
                 .yd =  137;
                 .xr =  278;
                 .yt =  161;
                 break;
             case 1: // Cas 2
-                areamonster "ordeal_1-1",260,149,260,149,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnThirdBranch",2;
+                areamonster "ordeal_1-1",260,149,260,149,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnThirdBranch",2;
                 .xl =  192;
                 .yd =  42;
                 .xr =  258;
                 .yt =  103;
                 break;
             case 2: // Cas 3
-                areamonster "ordeal_1-1",235,62,235,62,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnForthBranch",2;
+                areamonster "ordeal_1-1",235,62,235,62,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnForthBranch",2;
                 .xl =  137;
                 .yd =  21;
                 .xr =  161;
                 .yt =  81;
                 break;
             case 3: // Cas 4
-                areamonster "ordeal_1-1",149,39,149,39,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnFifthBranch",2;
+                areamonster "ordeal_1-1",149,39,149,39,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnFifthBranch",2;
                 .xl =  44;
                 .yd =  52;
                 .xr =  106;
                 .yt =  108;
                 break; 
             case 4: // Cas 5
-                areamonster "ordeal_1-1",64,62,64,62,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSixthBranch",2;
+                areamonster "ordeal_1-1",64,62,64,62,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSixthBranch",2;
                 .xl =  21;
                 .yd =  138;
                 .xr =  86;
                 .yt =  162;
                 break; 
             case 5: // Cas 6
-                areamonster "ordeal_1-1",39,149,39,149,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSeventhBranch",2;
+                areamonster "ordeal_1-1",39,149,39,149,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnSeventhBranch",2;
                 .xl =  41;
                 .yd =  191;
                 .xr =  101;
                 .yt =  257;
                 break;
             case 6: // Cas 7
-                areamonster "ordeal_1-1",61,236,61,236,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnEightBranch",2;
+                areamonster "ordeal_1-1",61,236,61,236,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnEightBranch",2;
                 .xl =  137;
                 .yd =  215;
                 .xr =  162;
                 .yt =  278;
                 break;
             case 7: // Cas 8
-                areamonster "ordeal_1-1",150,273,150,273,getmonsterinfo(.Boss_To_Summon[$devil_square_step],0),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnBoss",2;
+                areamonster "ordeal_1-1",150,273,150,273,getmonsterinfo(.Boss_To_Summon[$devil_square_step],MOB_NAME),.Boss_To_Summon[$devil_square_step],1,"devilsquare_01::OnBoss",2;
                 break;
             case 8: // Cas 9
-                enablenpc("Auberon#devilsquare_01d"); // On pop la reward pour la 4 éme branche paire
+                enablenpc("Auberon#devilsquare_01d"); // On pop la reward pour la 4  me branche paire
 
                 announce "All areas are clear... Be careful! I'm hearing a loud roar from the middle section!",0x00BFFF;
-                announce "Toutes les zones sont sous contrôle... Attention ! J'entends un puissant grognement en provenance du centre !",0xFFA500;
 
-                areamonster "ordeal_1-1",149,161,149,161,"Jacob",2022,1,"devilsquare_01::OnMiddle",2;
+                areamonster "ordeal_1-1",149,161,149,161,getmonsterinfo(2022,MOB_NAME),2022,1,"devilsquare_01::OnMiddle",2;
                 break;                   
         }
         $devil_square_step++;
@@ -314,7 +299,6 @@ OnFifthBranch:
 OnSixthBranch:
 OnSeventhBranch:
 OnEightBranch:
-
     announce "This area is clear. Go to the next one!",0x00BFFF;
     announce "A portal just appeared.",0x00BFFF;
 
@@ -325,7 +309,7 @@ OnEightBranch:
             break;
         case 2: // Cas 3
             initnpctimer;
-            enablenpc("Auberon#devilsquare_01a"); // On pop la reward pour la 1 ére branche paire
+            enablenpc("Auberon#devilsquare_01a"); // On pop la reward pour la 1  re branche paire
             enablenpc("ord11-15");
             break;    
         case 3: // Cas 4
@@ -352,16 +336,16 @@ OnEightBranch:
             break;
     }
 
-    areapercentheal "ordeal_1-1",1,1,300,300,100,100; // On heal tout le monde sur la map après le cleaning d'une branche (on est gentil)
+    areapercentheal "ordeal_1-1",1,1,300,300,100,100; // On heal tout le monde sur la map apr s le cleaning d'une branche (on est gentil)
 
     // A chaque branche on s'adapte en fonction de la population de joueur sur la map
     set .@mapusers, getmapusers("ordeal_1-1");
-    if (.@mapusers < 20){ // Easy
+    if (.@mapusers > 20){ // Easy
         .Difficulty = 0;
         copyarray .Mob_To_Summon[0],.Mob_To_Summon_Easy[0],32;
         copyarray .Boss_To_Summon[0],.Boss_To_Summon_Easy[0],8;
         copyarray .Number_To_Summon[0],.Number_To_Summon_Easy[0],32;
-    } else if (.@mapusers < 40) { // Medium
+    } else if (.@mapusers > 40) { // Medium
         .Difficulty = 1;
         copyarray .Mob_To_Summon[0],.Mob_To_Summon_Normal[0],32;
         copyarray .Boss_To_Summon[0],.Boss_To_Summon_Normal[0],8;
@@ -373,9 +357,9 @@ OnEightBranch:
         copyarray .Number_To_Summon[0],.Number_To_Summon_Hard[0],32;
     }
 
-    // On fait pop 4 types de mob différents sur la branche (en fonction de la difficulté)
+    // On fait pop 4 types de mob diff rents sur la branche (en fonction de la difficult )
     for (.i = 0; .i < 4 ; .i++){
-        areamonster "ordeal_1-1",.xl,.yd,.xr,.yt,getmonsterinfo(.Mob_To_Summon[$devil_square_step*4 + .i],0),.Mob_To_Summon[$devil_square_step*4 + .i],.Number_To_Summon[$devil_square_step*4 + .i],"devilsquare_01::OnBoss";
+        areamonster "ordeal_1-1",.xl,.yd,.xr,.yt,getmonsterinfo(.Mob_To_Summon[$devil_square_step*4 + .i],MOB_NAME),.Mob_To_Summon[$devil_square_step*4 + .i],.Number_To_Summon[$devil_square_step*4 + .i],"devilsquare_01::OnBoss";
     }
 
     end;  
@@ -383,12 +367,12 @@ OnEightBranch:
 // Boss Final Mort
 OnMiddle:
 
-    initnpctimer; // Utiliser pour désactiver le NPC qui warp à l'event au bout de 30 secondes
+    initnpctimer; // Utiliser pour d sactiver le NPC qui warp   l'event au bout de 30 secondes
     enablenpc("Auberon#devilsquare_01e"); // On pop la reward pour le boss final
     $devil_square_step = 9;
     end;
 
-// Au bout de 30 secondes on désactive le warp de la branche paire pour éviter l'abus et on désactive le warp qui tp sur la map
+// Au bout de 30 secondes on d sactive le warp de la branche paire pour  viter l'abus et on d sactive le warp qui tp sur la map
 OnTimer30000:
 
     stopnpctimer;
@@ -412,6 +396,48 @@ OnTimer30000:
     }
     end;
 
+}
+
+/**
+*   Fonction qui écrit le nom du NPC dans les messages du NPC entourré de crochets
+*/
+function	script	F_NPC_NAME	{
+    mes "[" + strnpcinfo(1) + "]";
+    return;
+}
+
+/**
+*	Fonction pour la reward d'un evenement non automatique et la téléportation en ville
+*	@npc_name$				:	Nom du npc
+*	@item_reward			:	Id de la récompense
+*	@value					:	Nombre de récompense à donner
+*/
+function	script	F_REWARD_EVENT	{	
+	set .@npc_name$,getarg(0);
+	set .@item_reward,getarg(1);
+	set .@value,getarg(2);
+	
+	mes "["+.@npc_name$+"]";
+	getitem .@item_reward,.@value;
+	mes "Thanks for participating, here's your reward.";
+	next;
+	warp "prontera",155,182;
+	
+	close;
+}
+
+/**
+*	Fonction qui ne distribue pas la récompense lors d'un evenement et la téléportation en ville
+*	@npc_name$			:	Nom du npc
+*/
+function	script	F_NOREWARD_EVENT	{
+	set .@npc_name$,getarg(0);	
+	mes "["+.@npc_name$+"]";
+	mes "Did I Forget about you ?";
+	next;
+	warp "prontera",155,182;
+	
+	close;
 }
 
 /**
