@@ -444,6 +444,9 @@ gef_tower,111,37,4	script	Wizard Guildsman	70,{
 		next;
 		mes "[Catherine]";
 		mes "Well, then...*sight*...live a wonderful life as a Wizard, become the strongest out there!";
+		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 }

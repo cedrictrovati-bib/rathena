@@ -339,6 +339,9 @@ que_ng,30,65,3	script	Kuuga Gai#nq	730,{
 			delitem 1010,1; // Phracon
 			getitem 13010,1;	// Asura
 			completequest 6018;
+
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 			close;
 		}
 		else {

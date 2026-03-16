@@ -447,6 +447,9 @@ prt_in,88,101,4	script	Chivalry Captain#knt	56,{
 		mes "Rune-Midgarts";
 		mes "rests on your";
 		mes "shoulders!";
+		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 L_Mission:

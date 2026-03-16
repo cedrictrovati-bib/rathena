@@ -871,6 +871,9 @@ monk_in,99,58,1	script	Sensei Moohae#mk	60,{
 				getitem 1804,1; //Knuckle_Duster_
 			else
 				getitem 1801,1; //Waghnakh
+			
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 		}
 		close;
 	}

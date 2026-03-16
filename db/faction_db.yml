@@ -38,19 +38,30 @@ Header:
 
 Body:
   - Id: 1
-    Name: Paradise
-    PlayerName: Angel
-    HomeMap: gonryun
-    HomeX: 0
-    HomeY: 0
-    Race: Angel
-    Element: Holy
+    Name: Citizen
+    PlayerName: Citizen
+    HomeMap: prontera
+    HomeX: 155
+    HomeY: 79
+    Race: DemiHuman
+    Element: Neutral
     ElementLevel: 1
     Size: Medium
     rpRace: Human
-    HairColor: 2
-    HairStyle: 2
-    ClothColor: 2
+    Alliance:
+      2: true #Aetherials
+      3: true #Remnants
+  - Id: 2
+    Name: Aetherials
+    PlayerName: Aether
+    HomeMap: hero_ent2
+    HomeX: 90
+    HomeY: 79
+    Race: DemiHuman
+    Element: Neutral
+    ElementLevel: 1
+    Size: Medium
+    rpRace: Human
     MsgColor: 0x2986CC
     FunctorAura: 0x2986CC
     Aura:
@@ -61,21 +72,18 @@ Body:
       bonus bInt,3;
     LeaderAuraBonus: |
       bonus bInt,30;
-  - Id: 2
-    Name: Hell
-    PlayerName: Demon
+  - Id: 3
+    Name: Remnants
+    PlayerName: Remnant
     Location:
-    HomeMap: morocc
-    HomeX: 0
-    HomeY: 0
-    Race: Undead
-    Element: Undead
+    HomeMap: nif_dun01
+    HomeX: 146
+    HomeY: 161
+    Race: DemiHuman
+    Element: Neutral
     ElementLevel: 1
     Size: Medium
     rpRace: Dark Elves
-    HairColor: 5
-    HairStyle: 5
-    ClothColor: 5
     MsgColor: 0xFF0000
     FunctorAura: 0xFF0000
     Aura:

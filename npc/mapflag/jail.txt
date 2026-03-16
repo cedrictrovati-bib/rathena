@@ -46,3 +46,24 @@ sec_pri	mapflag	hidemobhpbar
 
 // Item and Skill restrictions
 sec_pri	mapflag	restricted	2
+
+
+// Change faction 
+
+// No Memory
+job3_rune02	mapflag	nomemo
+
+// No Save
+job3_rune02	mapflag	nosave	SavePoint
+
+// No Teleport
+job3_rune02	mapflag	noteleport
+
+// No Warp
+job3_rune02	mapflag	nowarp
+
+// No Return
+job3_rune02	mapflag	noreturn
+
+// Item and Skill restrictions
+job3_rune02	mapflag	restricted	2

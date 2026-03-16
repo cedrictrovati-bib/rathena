@@ -1753,6 +1753,10 @@ alde_alche,101,184,4	script	Master Alchemist#am	122,{
 		mes "Remember to carry";
 		mes "yourself with pride";
 		mes "as an Alchemist!";
+		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		next;
+		warp "job3_rune02",39,26;
 		close2;
 		cutin "",255;
 		end;

@@ -172,6 +172,9 @@ yuno_in02,38,61,5	script	Dean of the Academy#sa	743,{
 			mes "[Kayron Grik]";
 			mes "Well then...May God fill your path with knowledge.";
 			mes "Study with diligence!!";
+			
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 		}
 		else {
 			mes "Hmm? What has happened to you? Where did you leave your dissertation?";

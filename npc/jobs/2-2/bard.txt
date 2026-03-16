@@ -887,6 +887,9 @@ comodo,226,123,5	script	Wandering Bard	741,{
 					next;
 					mes "[Lalo]";
 					mes "See you again next time!";
+					
+					mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+					warp "job3_rune02",39,26;
 					close2;
 					cutin "job_bard_aiolo01",255;
 					end;
@@ -932,6 +935,9 @@ S_ChangeJob:
 	next;
 	mes "[Lalo]";
 	mes "See you next time!";
+	
+	mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+	warp "job3_rune02",39,26;
 	close2;
 	cutin "job_bard_aiolo01",255;
 	end;

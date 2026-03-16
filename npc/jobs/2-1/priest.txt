@@ -528,6 +528,9 @@ prt_church,16,41,4	script	High Bishop#prst	60,{
 		next;
 		mes "[Bishop Paul]";
 		mes "You've shown great effort, and have made admirable progress in your personal quest for holiness. Please lead your life as a sincere Priest...";
+		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 }
@@ -1373,7 +1376,7 @@ OnTouch_:
 		mes "[Deviruchi]";
 		mes "But how about this...? Now, isn't this an attractive sight? A nice, shiny new card. Mint condition. Not too many people have this you know. But I happen to have soooo many, my pockets hurt.";
 		next;
-		cutin "�̽�Ʈ����ī��.bmp",4; // Mistress Card
+		cutin "¹Ì½ºÆ®·¹½ºÄ«µå.bmp",4; // Mistress Card
 		mes "[Deviruchi]";
 		mes "Isn't it everyone's dream to have one of these? Think about it, being a Priest can only bring you suffering...";
 		next;
@@ -1383,7 +1386,7 @@ OnTouch_:
 			mes "This card can";
 			mes "can be yours...";
 			next;
-			cutin "�̽�Ʈ����ī��.bmp",255; // Mistress Card
+			cutin "¹Ì½ºÆ®·¹½ºÄ«µå.bmp",255; // Mistress Card
 			mes "[Deviruchi]";
 			mes "Theoretically!";
 			mes "BWAHAHAHAHAHAHAHA!";
@@ -1392,7 +1395,7 @@ OnTouch_:
 			warp "mjolnir_05",200,200;
 			end;
 		}
-		cutin "�̽�Ʈ����ī��.bmp",255; // Mistress Card
+		cutin "¹Ì½ºÆ®·¹½ºÄ«µå.bmp",255; // Mistress Card
 		mes "[Deviruchi]";
 		mes "Did...";
 		mes "Did you just tell";

@@ -401,8 +401,6 @@
 			next;
 			mes "[Phoenix]";
 			mes "Very well. I wish you luck.";
-			mes "I hope to see you again";
-			mes "sometime, "+strcharinfo(0)+".";
 			close;
 		}
 		mes "[Phoenix]";

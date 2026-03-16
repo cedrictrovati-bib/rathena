@@ -193,6 +193,9 @@ que_ng,152,167,3	script	Master Miller	901,{
 				else
 					getitem 13150,1;	// Branch
 			}
+			
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 			close;
 		}
 	} else {

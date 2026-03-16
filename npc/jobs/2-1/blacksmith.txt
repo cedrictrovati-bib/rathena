@@ -288,6 +288,8 @@ ein_in01,18,28,4	script	Guildsman#BLS	731,{
 				getitem 999,30; //Steel
 			else 
 				getitem 999,5; //Steel
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 			close;
 		}
 	}

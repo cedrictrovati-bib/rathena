@@ -889,6 +889,9 @@ job_duncer,95,93,4	script	Bijou#da	101,{
 			getitem 1953,1; //Line_
 		else
 			getitem 1950,1; //Rope
+			
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 } 

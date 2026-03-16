@@ -1,14 +1,14 @@
 prontera,160,180,3	script	Faction Sample	100,{
 mes "[Faction Sample]", "Hello!", "I'm the sample NPC for faction system script commands";
 next;
-mes "[Faction Sample]", "Let's start...", "Input faction ID 1~2 and i'll make you a faction member";
+mes "[Faction Sample]", "Let's start...", "Input faction ID 1~3 and i'll make you a faction member";
 next;
-input(@faction_id,1,2);
+input(@faction_id,1,3);
 mes "[Faction Sample]","You choose '"+factioninfo(@faction_id,0)+"' faction:","What are you want?";
 next;
 L_Menu:
 mes "[Faction Sample]";
-	switch(select("Give me more Info about this faction:Make me a faction member of '"+factioninfo(@faction_id,0)+"':FvF On:FvF Off:Spawn Faction Monster:Set faction leader:Vote Start:Vote Stop:Vote to someone:Relic add:Relic info:Relic enable:Relic disable:Relic delete"))
+	switch(select("Give me more Info about this faction:Make me a faction member of '"+factioninfo(@faction_id,0)+"':FvF On:FvF Off:Spawn Faction Monster:Set faction leader:Vote Start:Vote Stop:Vote to someone:Relic add:Relic info:Relic enable:Relic disable:Relic delete:Teleport to faction choice"))
 	{
 		case 1: callsub(S_FACTION_INFO); break;
 		case 2: callsub(S_FACTION_SET); break;
@@ -23,7 +23,8 @@ mes "[Faction Sample]";
 		case 11: callsub(S_RELIC_INFO); break;
 		case 12: callsub(S_RELIC_ENABLE); break;
 		case 13: callsub(S_RELIC_DISABLE); break;
-		case 14: callsub(S_RELIC_DEL); break;
+		case 14: callsub(S_RELIC_DEL); break;		
+		case 15: callsub(S_FACTION_TP); break;
 	}
 close;
 
@@ -44,6 +45,10 @@ S_FACTION_FVF_SET:
 S_FACTION_SET:
 	setfaction(@faction_id);
 	mes "Now you're in Faction '"+factioninfo(@faction_id,0)+"'";
+	close;
+	
+S_FACTION_TP:
+	warp "job3_rune02",38,26;
 	close;
 
 S_FACTION_LEADER:
@@ -120,13 +125,13 @@ S_FACTION_INFO:
  * Example shop
  * Faction ID = 0, Discount -50% for Faction ID 1, Overcharge 50% for Faction ID 4
  **/
-prontera,152,180,3,0,[1:-50,2:50]	shop	Example_Shop_0	100,7227:100;
+prontera,152,180,3,1,[1:-50,2:50]	shop	Example_Shop_0	100,7227:100;
 
 /**
  * Example script
  * Faction ID = 2
  **/
-prontera,154,180,3,1	script	Example_Script_2	100,{
+prontera,154,180,3,2	script	Example_Script_2	100,{
 	mes "Hello!";
 	close;
 }
@@ -135,4 +140,84 @@ prontera,154,180,3,1	script	Example_Script_2	100,{
  * Example duplicate
  * Duplicate of 'Example_Script_2' but with Faction ID = 2
  **/
-prontera,156,180,5,2	duplicate(Example_Script_2)	Example_Script_3	100
+prontera,156,180,5,3	duplicate(Example_Script_2)	Example_Script_3	100
+
+
+/**
+ * Choose faction NPC
+ **/
+job3_rune02,38,42,3	script	Prism of Fate	10547,{
+	// Define the Stone's name as a constant
+    .stone_name$ = "Prism of Fate";
+	
+	mes "[ ^FF0000" + .stone_name$ + "^000000 ]";
+	mes "A strange, humming vibration fills the air. As you approach the crystal, your reflection seems to split into two distinct forms.";
+	next;
+		
+	if (Class == Job_Novice) {
+		mes "[ ^FF0000" + .stone_name$ + "^000000 ]";
+		mes "The Prism remains dark. It does not recognize your potential yet.";
+		mes "Return once you have found your path as an adventurer.";
+		close;
+	}
+
+	if (@faction_id > 1) {
+		mes "[ ^FF0000" + .stone_name$ + "^000000 ]";
+		mes "The Prism has already read your soul. Your path is set.";
+		close;
+	}
+	
+	mes "[ ^FF0000" + .stone_name$ + "^000000 ]";
+	mes "Which side of the spectrum do you belong to?";
+	next;
+
+	switch(select("The Aetherials - The Celestial Light.:The Remnant - The Earthly Shadows.:Do not touch the stone.")) {
+		    
+		case 1: // Aetherials
+		    mes "[ ^0000FFThe Aetherials^000000 ]";
+		    mes "You feel a surge of warmth. You see visions of Asgard and the pure light of the Valkyries.";
+		    mes "Do you swear to purge the corruption and uphold the Divine Order?";
+		    next;
+		    if(select("I swear.:I am not ready.") == 2) goto OnCancel;
+		        
+		    set @faction_id, 2;
+            setfaction(@faction_id);
+		    specialeffect2 EF_HEAL2; // Golden Holy effect
+		    mes "The Prism glows with a blinding gold light.";
+		    mes "Welcome, Aetherial.";
+		    announce strcharinfo(0) + " has been sanctified as an Aetherial!", bc_all;
+			warp "hero_ent2",90,79; // Warp to Aetherial area
+			getitem 23360, 1;
+			dispbottom "You received Aetherials city scroll.";
+
+		    close;
+
+		case 2: // Remnant
+		    mes "[ ^660099The Remnant^000000 ]";
+		    mes "You feel a cold, haunting resonance. You see the flickering shadows of the Bio-Labs and the scars of the fallen.";
+		    mes "Do you embrace your survival and the truth of the shadows?";
+		    next;
+		    if(select("I embrace it.:I am not ready.") == 2) goto OnCancel;
+				
+		    set @faction_id, 3;
+            setfaction(@faction_id);
+		    specialeffect2 EF_PHANTOM_BARD; // Purple/Ghostly effect
+		    mes "The Prism pulses with a deep, violet energy.";
+		    mes "Welcome, Remnant.";
+		    announce strcharinfo(0) + " has emerged as a Remnant!", bc_all;
+			warp "nif_dun01",146,161; // Warp to Remnant area
+			getitem 23361, 1;
+			dispbottom "You received Remnants city scroll.";
+		    close;
+
+		case 3:
+		OnCancel:
+		    mes "[ ^FF0000" + .stone_name$ + "^000000 ]";
+		    mes "The visions fade. The Prism waits for your destiny.";
+		    close;
+
+	OnInit:
+		setnpcdisplay("Prism of Fate", "Prism of Fate", 10547, 2);
+		end;
+	}
+}
