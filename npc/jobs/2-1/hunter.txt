@@ -191,9 +191,6 @@ hu_in01,386,373,4	script	Hunter Guildsman#hnt	727,{
 				getitem 1718,1; //Hunter_Bow
 			else
 				getitem 1710,1; //CrossBow
-				
-			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
-			warp "job3_rune02",39,26;
 			close;
 		}
 		else if (HNTR_Q == 0 || HNTR_Q == 1) {

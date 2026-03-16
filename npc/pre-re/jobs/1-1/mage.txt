@@ -220,6 +220,10 @@ geffen_in,164,124,4	script	Mage Guildsman	123,{
 		next;
 		mes "[Mage Guildsman]";
 		mes "Now that you're a Mage just like us, let's be friends, okay?";
+		next;
+		mes "[Mage Guildsman]";		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	case 2:
 		mes "[Mage Guildsman]";

@@ -457,9 +457,6 @@ OnTouch_:
 			close2;
 			set getvariableofnpc(.SoulLinkerTest,"Kid#link1"),0;
 			donpcevent "Timer#link3::OnDisable";
-			
-			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
-			warp "job3_rune02",39,26;
 			end;
 		}
 		set getvariableofnpc(.SoulLinkerTest,"Kid#link1"),0;

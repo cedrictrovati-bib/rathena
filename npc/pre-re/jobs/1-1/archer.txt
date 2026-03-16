@@ -207,9 +207,11 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 		mes "Ah, your bow has arrived from the Bow Production Department. Here, take it! It's yours~";
 		getitem 1702,1; //Bow_
 		getitem 1750,.@total_archer2; //Arrow
+		mes "Now, off you go. Hunt with pride, knowing you were trained by one of the best!";		
 		next;
 		mes "[Archer Guildsman]";
-		mes "Now, off you go. Hunt with pride, knowing you were trained by one of the best!";
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	case 2:
 		mes "[Archer Guildsman]";

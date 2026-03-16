@@ -400,7 +400,10 @@
 			mes "as a Taekwon Do practitioner...";
 			next;
 			mes "[Phoenix]";
-			mes "Very well. I wish you luck.";
+			mes "Very well. I wish you luck.";			
+			
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 			close;
 		}
 		mes "[Phoenix]";

@@ -9,9 +9,9 @@
 #include "unit.hpp"
 
 // Max factions
-#define MAX_FACTION 2
+#define MAX_FACTION 3
 // Max alliances of each faction
-#define MAX_FACTION_ALLIANCE 1
+#define MAX_FACTION_ALLIANCE 2
 // Max effects for faction aura
 #define MAX_AURA_EFF 3
 // Max relics of each faction

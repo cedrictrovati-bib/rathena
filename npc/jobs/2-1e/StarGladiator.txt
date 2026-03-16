@@ -700,8 +700,6 @@ comodo,172,230,3	script	Wandering Master#job_sta	730,{
 			mes "that we, as Taekwon Masters,";
 			mes "cannot exist separately from";
 			mes "the Sun, Moon and Stars...";
-			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
-			warp "job3_rune02",39,26;
 			close;
 		}
 		mes "[Moogang]";

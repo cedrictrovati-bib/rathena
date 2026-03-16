@@ -199,8 +199,11 @@ prt_church,184,41,4	script	Cleric#aco	60,{
 		mes "[Father Mareusis]";
 		mes "Always use your gifts to serve Him by helping others. In chaos and times of difficulty, face your hardships with unwavering faith.";
 		next;
+		mes "Lastly, I want to sincerely congratulate you on persevering through your trial of penance.";			
+		next;
 		mes "[Father Mareusis]";
-		mes "Lastly, I want to sincerely congratulate you on persevering through your trial of penance.";
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	case 2:
 		mes "[Father Mareusis]";

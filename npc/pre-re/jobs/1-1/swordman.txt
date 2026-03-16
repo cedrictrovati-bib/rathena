@@ -160,6 +160,10 @@ izlude_in,74,172,4	script	Swordman#swd_1	119,{
 			completequest 1014;
 			mes "[Swordman]";
 			mes "Once again, congratulations. I expect that you will be a good representative of the Swordman Association.";
+			next;			
+			mes "[Swordman]";
+			mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+			warp "job3_rune02",39,26;
 			close;
 		}
 	case 2:

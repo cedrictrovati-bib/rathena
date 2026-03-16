@@ -445,7 +445,11 @@ moc_prydb1,42,133,2	script	Comrade	118,{
 		next;
 		mes "[Brad]";
 		mes "Here is a small subsidy for a Newbie like you. Spend it whereever you want. Alright then, I'll see you around~";
-		set Zeny, Zeny+.@money_thief;
+		set Zeny, Zeny+.@money_thief;		
+		next;
+		mes "[Brad]";
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 }

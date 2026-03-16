@@ -190,8 +190,6 @@ in_rogue,363,122,4	script	Rogue Guildsman#rg	747,{
 					getitem 1219,1; //Gladius
 				}
 				
-				mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
-				warp "job3_rune02",39,26;
 				end;
 			}
 			if (select("I'm ready.:Hold on, I need to get ready!") == 2) {

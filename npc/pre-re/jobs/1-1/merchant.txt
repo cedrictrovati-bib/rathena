@@ -178,6 +178,10 @@ alberta_in,53,43,6	script	Merchant#mer	86,{
 		mes "[Chief Mahnsoo]";
 		mes "But overall, we'll also be happy just to make loads of money.";
 		mes "But we all know that~";
+		next;
+		mes "[Chief Mahnsoo]";		
+		mes "It is not finished yet. Now that you've became stronger, you need to choose your path. You'll be teleported right now to face your destiny.";
+		warp "job3_rune02",39,26;
 		close;
 	}
 	else if (job_merchant_q2 && job_merchant_q > 0 && job_merchant_q < 7) {
