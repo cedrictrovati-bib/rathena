@@ -2809,7 +2809,7 @@ enum e_skill_unit_id : uint16 {
 	UNT_GD_HAWKEYES = 0xc4,
 
 	UNT_FACTION_AURA = 0x189, // Complete Faction System
-	UNT_MAX = 0x190
+	UNT_MAX
 };
 
 /**

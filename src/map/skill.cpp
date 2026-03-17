@@ -6182,6 +6182,7 @@ std::shared_ptr<s_skill_unit_group> skill_unitsetting(block_list *src, uint16 sk
 	group->state.ammo_consume = ( sd != nullptr && sd->state.arrow_atk && skill_id != GS_GROUNDDRIFT && !( flag&UNIT_NOCONSUME_AMMO ) );
 	group->state.song_dance = (((skill->unit_flag[UF_DANCE] || skill->unit_flag[UF_SONG])?1:0)|(skill->unit_flag[UF_ENSEMBLE]?2:0)); //Signals if this is a song/dance/duet
 	group->state.guildaura = ( skill_id >= GD_LEADERSHIP && skill_id <= GD_HAWKEYES )?1:0;
+	group->state.faction_aura = (skill_id == FACTION_AURA) ? 1 : 0; // Complete Faction System
 	group->item_id = req_item;
 
 	// If tick is greater than current, do not invoke onplace function just yet. [Skotlex]
@@ -6708,6 +6709,10 @@ static int32 skill_unit_onplace(skill_unit *unit, block_list *bl, t_tick tick)
 		case UNT_GD_HAWKEYES:
 			if ( !sce && battle_check_target(unit, bl, sg->target_flag) > 0 )
 				sc_start4(ss, bl,type,100,sg->skill_lv,0,0,0,1000);
+			break;
+		case UNT_FACTION_AURA:
+			if ( !sce )
+				sc_start4(ss,bl,type,100,sg->skill_lv,sg->faction_id,0,0,1000);
 			break;
 	}
 	return skill_id;
@@ -7804,6 +7809,7 @@ int32 skill_unit_onleft(uint16 skill_id, block_list *bl, t_tick tick)
 		case GD_GLORYWOUNDS:
 		case GD_SOULCOLD:
 		case GD_HAWKEYES:
+		case FACTION_AURA:
 			if( !(sce && sce->val4) )
 				status_change_end(bl, type);
 			break;
@@ -11923,6 +11929,7 @@ std::shared_ptr<s_skill_unit_group> skill_initunitgroup(block_list* src, int32 c
 	group->interval   = interval;
 	group->tick       = gettick();
 	group->valstr     = nullptr;
+	group->faction_id = faction_get_id(src); // Complete Faction System
 
 	ud->skillunits.push_back(group);
 
@@ -12224,7 +12231,7 @@ static int32 skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		return 0;
 
 	// Check for expiration
-	if( !group->state.guildaura && (DIFF_TICK(tick,group->tick) >= group->limit || DIFF_TICK(tick,group->tick) >= unit->limit) )
+	if (!(group->state.guildaura || group->state.faction_aura) && (DIFF_TICK(tick, group->tick) >= group->limit || DIFF_TICK(tick, group->tick) >= unit->limit))
 	{// skill unit expired (inlined from skill_unit_onlimit())
 		switch( group->unit_id ) {
 			case UNT_ICEWALL:

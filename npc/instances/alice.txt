@@ -50,64 +50,6 @@
 //anightmare_aline	Aline quest variable
 //@warp niflheim 341 213
 
-// --- Simple Icon Tester NPC ---
-// Place this in your npc/custom/ folder and add to scripts_custom.conf
-
-// --- Faction Aura Tester NPC ---
-// Located at Prontera (158, 175)
-
-prontera,158,175,4	script	Faction Icon Tester	4_F_KAFRA7,{
-
-    mes "[Faction Aura Tester]";
-    mes "Hello! I can apply your custom faction status so you can test if the icon is appearing correctly.";
-    next;
-    
-    switch(select("Apply Faction_Aura:Remove Status:Cancel")) {
-        case 1:
-            // Applies the status for 10 minutes (600,000 ms)
-            sc_start SC_FACTION_AURA, 6000, 1;
-            mes "[Faction Aura Tester]";
-            mes "The status has been applied. Check your buff icons in the top right!";
-            close;
-            
-        case 2:
-            sc_end SC_FACTION_AURA;
-            mes "[Faction Aura Tester]";
-            mes "Status removed.";
-            close;
-            
-        case 3:
-            close;
-    }
-}
-
-prontera,160,178,4	script	Faction Icon Tester2	4_F_KAFRA7,{
-
-    mes "[Provoke Tester]";
-    mes "Hello! I can apply your custom faction status so you can test if the icon is appearing correctly.";
-    next;
-    
-    switch(select("Provoke:Remove Status:Cancel")) {
-        case 1:
-            // Applies the status for 10 minutes (600,000 ms)
-            sc_start Provoke, 6000, 1;
-            mes "[Provoke Tester]";
-            mes "The status has been applied. Check your buff icons in the top right!";
-            close;
-            
-        case 2:
-            sc_end Provoke;
-            mes "[Provoke Tester]";
-            mes "Status removed.";
-            close;
-            
-        case 3:
-            close;
-    }
-}
-
-// To use: Whisper "IconTester" in-game (e.g., /w "IconTester" hello)
-
 //----Quest Starting NPC--------------------------
 niflheim,341,213,6	script	Alice#forest	10013,{
 	set .@party_id,getcharid(1);

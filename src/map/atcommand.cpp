@@ -11349,6 +11349,7 @@ ACMD_FUNC(enabledfactionpk)
 
 	return 0;
 }
+
 ACMD_FUNC(disabledfactionpk)
 {
 	sd->status.fvf_pk_enabled = false;

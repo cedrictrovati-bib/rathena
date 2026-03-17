@@ -144,9 +144,9 @@ enum e_enchantgrade : uint16{
 ///#define FUNCTORNICK
 ///#define GEPARD
 // Uncomment to add a special aura leader icon, you need to modify things client side too
-//#define FACTION_AURA_ICON
+#define FACTION_AURA_ICON
 // Uncomment to add a special icon for each faction
-//#define FACTION_ICONS
+#define FACTION_ICONS
 // Uncomment to add a special icon for each faction roleplay race
 //#define FACTION_RACE_ICONS
 
