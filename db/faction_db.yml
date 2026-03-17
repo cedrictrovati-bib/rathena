@@ -69,9 +69,11 @@ Body:
       485: true
     FunctorNick: 3
     Script: |
-      bonus bInt,3;
+      bonus bInt,0;
     LeaderAuraBonus: |
-      bonus bInt,30;
+      bonus bMaxHPrate,30;
+      bonus bMatk,50;
+      bonus bBaseAtk,50;
   - Id: 3
     Name: Remnants
     PlayerName: Remnant
@@ -90,6 +92,8 @@ Body:
       239: true
       418: true
     Script: |
-      bonus bStr,3;
+      bonus bStr,0;
     LeaderAuraBonus: |
-      bonus bStr,30;
+      bonus bMaxHPrate,30;
+      bonus bMatk,50;
+      bonus bBaseAtk,50;

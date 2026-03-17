@@ -88,6 +88,7 @@ Body:
       NoForcedEnd: true
   - Status: Faction_Aura
     Icon: EFST_FACTION_AURA
+    DurationLookup: FACTION_AURA
     Flags:
       NoClearbuff: true
       NoSave: true

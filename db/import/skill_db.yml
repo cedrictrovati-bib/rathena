@@ -177,13 +177,13 @@ Body:
     MaxLevel: 1
     Flags:
       Faction: true
-    SplashArea: 5
+    SplashArea: -1
     Duration1: 300000
     Unit:
       Id: FACTION_AURA
-      Layout: 2
+      Layout: 10
       Interval: -1
       Target: Faction
       Flag:
-       NoMob: true
+        NoMob: true
     Status: Faction_Aura
