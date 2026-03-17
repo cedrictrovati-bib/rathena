@@ -776,4 +776,144 @@ Body:
       - Item: Green_Herb
         Rate: 3000
       - Item: Old_Violet_Box
-        Rate: 10
+        Rate: 10        
+  - Id: 20818
+    AegisName: EM_PROCELLA
+    Name: Procella
+    Level: 35
+    Hp: 140000
+    Sp: 0
+    BaseExp: 9580
+    JobExp: 8288
+#   MvpExp:
+    Attack: 131
+    Attack2: 119
+    Defense: 20
+    MagicDefense: 20
+    Str: 50
+    Agi: 50
+    Vit: 50
+    Int: 50
+    Dex: 50
+    Luk: 50
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 768
+    AttackMotion: 1632
+    ClientAttackMotion: 288
+    DamageMotion: 576
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+  - Id: 2338
+    AegisName: MD_MANANANGGAL
+    Name: Manananggal
+    Level: 35
+    Hp: 140000
+    Sp: 0
+    BaseExp: 9580
+    JobExp: 8288
+#   MvpExp:
+    Attack: 131
+    Attack2: 119
+    Defense: 20
+    MagicDefense: 20
+    Str: 50
+    Agi: 50
+    Vit: 50
+    Int: 50
+    Dex: 50
+    Luk: 50
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 768
+    AttackMotion: 1632
+    ClientAttackMotion: 288
+    DamageMotion: 576
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+  - Id: 3658
+    AegisName: MD_LICH_LORD_100
+    Name: Lich Lord
+    Level: 35
+    Hp: 140000
+    Sp: 0
+    BaseExp: 9580
+    JobExp: 8288
+#   MvpExp:
+    Attack: 131
+    Attack2: 119
+    Defense: 20
+    MagicDefense: 20
+    Str: 50
+    Agi: 50
+    Vit: 50
+    Int: 50
+    Dex: 50
+    Luk: 50
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 768
+    AttackMotion: 1632
+    ClientAttackMotion: 288
+    DamageMotion: 576
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+  - Id: 22363
+    AegisName: EP21_B_YORTUS_A
+    Name: Remnant God
+    Level: 35
+    Hp: 140000
+    Sp: 0
+    BaseExp: 9580
+    JobExp: 8288
+#   MvpExp:
+    Attack: 131
+    Attack2: 119
+    Defense: 20
+    MagicDefense: 20
+    Str: 50
+    Agi: 50
+    Vit: 50
+    Int: 50
+    Dex: 50
+    Luk: 50
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 768
+    AttackMotion: 1632
+    ClientAttackMotion: 288
+    DamageMotion: 576
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true

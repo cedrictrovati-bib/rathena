@@ -11343,6 +11343,19 @@ ACMD_FUNC(setfaction)
 	return 0;
 }
 
+ACMD_FUNC(enabledfactionpk)
+{
+	sd->status.fvf_pk_enabled = true;
+
+	return 0;
+}
+ACMD_FUNC(disabledfactionpk)
+{
+	sd->status.fvf_pk_enabled = false;
+
+	return 0;
+}
+
 /*==========================================
  * Complete Faction System
  * @reloadfactiondb
@@ -11994,6 +12007,8 @@ void atcommand_basecommands(void) {
 		// Complete Faction System
 		ACMD_DEF(setfaction),
 		ACMD_DEF(reloadfactiondb),
+		ACMD_DEF(enabledfactionpk),
+		ACMD_DEF(disabledfactionpk),
 		ACMD_DEF(fvfon),
 		ACMD_DEF(fvfoff),
 		ACMD_DEF(home),

@@ -27226,6 +27226,42 @@ BUILDIN_FUNC(openstylist) {
 #endif
 }
 
+BUILDIN_FUNC(enabledfactionpk) {
+	TBL_PC* sd = NULL;
+
+	int char_id = script_getnum(st, 2);
+
+	if ((sd = map_charid2sd(char_id)) == NULL)
+	{
+		// Using ShowWarning or script_pushnil is good practice
+		ShowError("enabledfactionpk: No such character (char_id=%d).\n", char_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	// Apply the flag
+	sd->status.fvf_pk_enabled = true;
+
+	return 0;
+}
+
+BUILDIN_FUNC(disabledfactionpk) {
+	TBL_PC* sd = NULL;
+
+	int char_id = script_getnum(st, 2);
+
+	if ((sd = map_charid2sd(char_id)) == NULL)
+	{
+		// Using ShowWarning or script_pushnil is good practice
+		ShowError("enabledfactionpk: No such character (char_id=%d).\n", char_id);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	// Apply the flag
+	sd->status.fvf_pk_enabled = false;
+
+	return 0;
+}
+
 /**
  * Complete Faction System
  * factioninfo(<Faction ID>,<Type>[,<Val>]);
@@ -29580,7 +29616,9 @@ struct script_function buildin_func[] = {
      	BUILDIN_DEF(relicadd, "iii"),
      	BUILDIN_DEF(relicgetinfo, "ii"),
      	BUILDIN_DEF(relicdel, "ii"),
-     	BUILDIN_DEF(relicactivate, "iii"),
+		BUILDIN_DEF(relicactivate, "iii"),
+		BUILDIN_DEF(enabledfactionpk, "i"),
+		BUILDIN_DEF(disabledfactionpk, "i"),
      	BUILDIN_DEF(votingstart, "?"),
      	BUILDIN_DEF(votingstop, "?"),
      	BUILDIN_DEF(vote, "i?"),

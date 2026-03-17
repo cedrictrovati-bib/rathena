@@ -22323,7 +22323,7 @@ Body:
       NoMail: true
       NoAuction: true
     Script: |
-        warp "hero_ent2",90,79;
+        warp "hero_ent2",90,84;
   - Id: 23361
     AegisName: Remnant_Scroll
     Name: Remnant Hidden Place
@@ -22342,4 +22342,4 @@ Body:
       NoMail: true
       NoAuction: true
     Script: |
-        warp "nif_dun01",146,161;
+        warp "nif_dun01",145,173;

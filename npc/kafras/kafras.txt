@@ -696,3 +696,22 @@ brasilis,197,221,4	script	Kafra Employee::kaf_bra	4_F_KAFRA1,{
 	savepoint "brasilis",195,259,1,1;
 	callfunc "F_KafEnd",0,1,"in the city of Brasilis";
 }
+
+// Aretherials
+//============================================================
+hero_ent2,102,89,4	script	Kafra::kaf_aet	4_F_FAIRY,{
+	cutin "kafra_01",2;
+	callfunc "F_Kafra",0,3,0,80,700;
+	savepoint "hero_ent2",90,84,1,1;
+	callfunc "F_KafEnd",0,1,"in the city of Brasilis";
+}
+// Remnants
+//============================================================
+nif_dun01,154,186,4	script	Kafra::kaf_rem	981,{
+	cutin "kafra_01",2;
+	callfunc "F_Kafra",0,3,0,80,700;
+	savepoint "nif_dun01",145,173,1,1;
+	callfunc "F_KafEnd",0,1,"in the hidden place of Remnants";
+}
+
+

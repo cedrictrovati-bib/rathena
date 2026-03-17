@@ -1,0 +1,67 @@
+hero_ent2,90,149,4	script	Aetherials God	4_EP18_DEMIFREYA,{
+    mes "[Aetherials God]";
+    mes "Hello Aether!";
+    mes "I can sense your soul... do you wish to engage in the Faction Wars?";
+    next;
+
+    // Use a menu to let the player choose
+    switch(select("Enable Faction PK:Disable Faction PK:No thanks")) {
+        case 1:
+            // This calls your custom C++ function
+            enabledfactionpk(getcharid(0));
+            mes "[Aetherials God]";
+            mes "It is done. Your blade is now bound to the faction's cause.";
+            break;
+
+        case 2:
+            // Note: You will need to create 'disabledfactionpk' in your source
+            // Or use a toggle command if you programmed it that way.
+            disabledfactionpk(getcharid(0)); 
+            mes "[Aetherials God]";
+            mes "The bloodlust fades. You are now protected from faction combat.";
+            break;
+
+        case 3:
+            mes "[Aetherials God]";
+            mes "Very well. May your path remain peaceful.";
+            break;
+    }
+    
+    close;
+}
+
+nif_dun01,146,198,4	script	Remnants God	4_CS_RIGEL,{
+   mes "[Remnants God]";
+    mes "Hello Remnant!";
+    mes "I can sense your soul... do you wish to engage in the Faction Wars?";
+    next;
+
+    // Use a menu to let the player choose
+    switch(select("Enable Faction PK:Disable Faction PK:No thanks")) {
+        case 1:
+            // This calls your custom C++ function
+            enabledfactionpk(getcharid(0));
+            mes "[Remnants God]";
+            mes "It is done. Your blade is now bound to the faction's cause.";
+            break;
+
+        case 2:
+            // Note: You will need to create 'disabledfactionpk' in your source
+            // Or use a toggle command if you programmed it that way.
+            disabledfactionpk(getcharid(0)); 
+            mes "[Remnants God]";
+            mes "The bloodlust fades. You are now protected from faction combat.";
+            break;
+
+        case 3:
+            mes "[Remnants God]";
+            mes "Very well. May your path remain peaceful.";
+            break;
+    }
+    
+    close;
+
+	OnInit:
+		setnpcdisplay("Remnants God", "Remnants God", 4_CS_RIGEL, 2);
+		end;
+}

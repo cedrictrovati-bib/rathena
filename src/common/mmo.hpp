@@ -627,6 +627,7 @@ struct mmo_charstatus {
 	int16 rename;
 
 	int32 faction_id;
+	bool fvf_pk_enabled;
 	time_t delete_date;
 	time_t unban_time;
 

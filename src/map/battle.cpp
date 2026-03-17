@@ -8624,16 +8624,20 @@ int32 battle_check_target( const block_list* src, const block_list* target, int3
 		{
 			if( mapdata->getMapFlag(MF_BATTLEGROUND) && sbg_id && sbg_id == tbg_id )
  				state &= ~BCT_ENEMY;
-			if( mapdata->getMapFlag(MF_FVF)){
-				if( (faction_get_id(s_bl) && faction_get_id(t_bl) && (
+			if (mapdata->getMapFlag(MF_FVF)) {
+				// On définit des pointeurs pour plus de clarté
+				TBL_PC* s_sd = (s_bl->type == BL_PC) ? (TBL_PC*)s_bl : NULL;
+				TBL_PC* t_sd = (t_bl->type == BL_PC) ? (TBL_PC*)t_bl : NULL;
+
+				if ((faction_get_id(s_bl) && faction_get_id(t_bl) && (
 					map_getcell(t_bl->m,t_bl->x,t_bl->y,CELL_CHKFVF) ||
 					map_getcell(s_bl->m,s_bl->x,s_bl->y,CELL_CHKFVF) ||
-					(s_bl->type == BL_PC && ((int)((TBL_PC*)s_bl)->status.base_level < battle_config.fvf_min_lvl)) ||
-					(t_bl->type == BL_PC && ((int)((TBL_PC*)t_bl)->status.base_level < battle_config.fvf_min_lvl)) ||
+					!(s_sd && t_sd && s_sd->status.fvf_pk_enabled && t_sd->status.fvf_pk_enabled) ||
 					faction_check_alliance(s_bl,t_bl))) ||
 					(s_bl->type == BL_PC && t_bl->type == BL_PC && !faction_get_id(s_bl) && !faction_get_id(t_bl))
-				)
+				){
 					state &= ~BCT_ENEMY;
+				}
 			}
 			if( battle_config.pk_mode && !mapdata_flag_gvg(mapdata) && s_bl->type == BL_PC && t_bl->type == BL_PC )
 			{ // Prevent novice engagement on pk_mode (feature by Valaris)
