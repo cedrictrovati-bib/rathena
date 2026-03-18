@@ -66,7 +66,7 @@ Body:
     FunctorAura: 0x2986CC
     Aura:
       240: true
-      485: true
+    AuraLeader: 485
     FunctorNick: 3
     Script: |
       bonus bInt,0;
@@ -90,7 +90,7 @@ Body:
     FunctorAura: 0xFF0000
     Aura:
       239: true
-      418: true
+    AuraLeader: 418
     Script: |
       bonus bStr,0;
     LeaderAuraBonus: |

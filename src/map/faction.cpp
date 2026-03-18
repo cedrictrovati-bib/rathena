@@ -366,6 +366,20 @@ uint64 FactionDatabase::parseBodyNode(const ryml::NodeRef& node) {
 		}
 	}
 
+	if (this->nodeExists(node, "AuraLeader")) {
+		int aura_leader;
+
+		if (!this->asInt32(node, "AuraLeader", aura_leader))
+			return 0;
+
+		if (aura_leader < 0 || aura_leader > 512) {
+			this->invalidWarning(node["AuraLeader"], "AuraLeader %d cannot be more than 0 and less than 512, capping to 0.\n", aura_leader);
+			aura_leader = 0;
+		}
+
+		fc->aura_leader = aura_leader;
+	}
+
 #ifdef FUNCTORNICK
 	if (this->nodeExists(node, "FunctorNick")) {
 		int color_nicks_group_id;
@@ -843,6 +857,10 @@ void faction_spawn(const struct block_list* bl)
 	}
 
 	faction_show_aura(bl);
+
+	if (faction_check_leader(((TBL_PC*)bl))) {
+		faction_show_aura_leader(bl);
+	}
 }
 
 void faction_show_aura(const struct block_list* bl)
@@ -867,6 +885,25 @@ void faction_show_aura(const struct block_list* bl)
 	}
 }
 
+void faction_show_aura_leader(const struct block_list* bl)
+{
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_get_id(bl));
+	const status_change* sc = NULL;
+	int i;
+
+	if (bl->type & (BL_CHAR | BL_NPC)) {
+		sc = status_get_sc(bl);
+		if (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE) || sc->getSCE(SC_CAMOUFLAGE))
+			return;
+	}
+
+	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
+		return;
+
+	if (fdb->aura_leader > 0)
+		clif_specialeffect(bl, fdb->aura_leader, AREA);
+}
+
 void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 {
 	std::shared_ptr<s_faction_db> fdb;
@@ -880,12 +917,18 @@ void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 	if (map_getmapflag(bl->m, MF_FVF)) {
 		if (battle_config.faction_ally_info_bl) {
 			if (battle_config.faction_ally_info_bl & bl->type && !faction_check_alliance(sd, bl)) {
-				WFIFOHEAD(fd, 32);
-				WFIFOW(fd, 0) = 0x2dd;
-				WFIFOL(fd, 2) = bl->id;
-				safestrncpy((char*)WFIFOP(fd, 6), status_get_name(*bl), NAME_LENGTH);
-				WFIFOW(fd, 30) = faction_get_id(bl);
-				WFIFOSET(fd, packet_len(0x2dd));
+
+				// Check if the target is a player and has PK enabled
+				bool is_pk_on = (bl->type == BL_PC && ((TBL_PC*)bl)->status.fvf_pk_enabled);
+
+				if (is_pk_on) {
+					WFIFOHEAD(fd, 32);
+					WFIFOW(fd, 0) = 0x2dd;
+					WFIFOL(fd, 2) = bl->id;
+					safestrncpy((char*)WFIFOP(fd, 6), status_get_name(*bl), NAME_LENGTH);
+					WFIFOW(fd, 30) = faction_get_id(bl);
+					WFIFOSET(fd, packet_len(0x2dd));
+				}
 			}
 		}
 		else {

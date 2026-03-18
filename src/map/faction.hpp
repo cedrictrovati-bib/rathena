@@ -40,7 +40,7 @@ struct s_faction_db {
 #ifdef FUNCTORNICK
 	int color_nicks_group_id;
 #endif
-	int race, ele, ele_lvl, size;
+	int race, ele, ele_lvl, size, aura_leader;
 	int aura[MAX_AURA_EFF];
 	unsigned long chat_color;
 #ifdef FUNCTORAURA
@@ -129,6 +129,7 @@ int faction_reload_fvf_sub(struct block_list*, va_list);
 int faction_relic_change_sub(map_session_data*, va_list);
 
 void faction_factionaura(map_session_data*);
+
 void faction_calc(struct block_list*);
 void faction_hp(const map_session_data*);
 #ifdef FACTION_ICONS
@@ -140,6 +141,7 @@ void faction_race_effect_icon(map_session_data* sd);
 
 void faction_spawn(const struct block_list*);
 void faction_show_aura(const struct block_list*);
+void faction_show_aura_leader(const struct block_list*);
 void faction_getareachar_unit(map_session_data*, struct block_list*);
 int faction_aura_clear(struct block_list*, va_list);
 int faction_check_alliance(const struct block_list*, const struct block_list*);

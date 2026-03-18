@@ -1451,7 +1451,7 @@ enum sc_type : int16 {
 	SC_FACTION1,
 	SC_FACTION2,
 
-	SC_FACTION_AURA,
+	SC_FACTION_AURA = 2000,
 
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 };
@@ -2956,7 +2956,7 @@ enum efst_type : int16{
 	EFST_RACE2,
 	EFST_FACTION1,
 	EFST_FACTION2,
-	EFST_FACTION_AURA,
+	EFST_FACTION_AURA = 2000,
 
 	EFST_MAX,
 };
