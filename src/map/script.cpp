@@ -27241,7 +27241,7 @@ BUILDIN_FUNC(enabledfactionpk) {
 	// Apply the flag
 	sd->status.fvf_pk_enabled = true;
 
-	return 0;
+	return SCRIPT_CMD_SUCCESS;
 }
 
 BUILDIN_FUNC(disabledfactionpk) {
@@ -27249,17 +27249,17 @@ BUILDIN_FUNC(disabledfactionpk) {
 
 	int char_id = script_getnum(st, 2);
 
-	if ((sd = map_charid2sd(char_id)) == NULL)
-	{
-		// Using ShowWarning or script_pushnil is good practice
-		ShowError("enabledfactionpk: No such character (char_id=%d).\n", char_id);
-		return SCRIPT_CMD_FAILURE;
-	}
+    if ((sd = map_charid2sd(char_id)) == NULL)
+    {
+        // Using ShowWarning or script_pushnil is good practice
+        ShowError("disabledfactionpk: No such character (char_id=%d).\n", char_id);
+        return SCRIPT_CMD_FAILURE;
+    }
 
 	// Apply the flag
 	sd->status.fvf_pk_enabled = false;
 
-	return 0;
+	return SCRIPT_CMD_SUCCESS;
 }
 
 /**

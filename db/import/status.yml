@@ -67,7 +67,7 @@ Body:
       NoClearance: true
       NoForcedEnd: true
   - Status: Faction1
-    Icon: EFST_FACTION1
+    Icon: EFST_STRIKING
     Flags:
       NoRemoveOnDead: true
       NoClearbuff: true
@@ -77,7 +77,7 @@ Body:
       NoClearance: true
       NoForcedEnd: true
   - Status: Faction2
-    Icon: EFST_FACTION2
+    Icon: EFST_CLOUD_KILL
     Flags:
       NoRemoveOnDead: true
       NoClearbuff: true

@@ -11323,8 +11323,8 @@ ACMD_FUNC(setfaction)
 #ifdef FUNCTORAURA
 	if (fdb->aura_data != 0) {
 		pc_setglobalreg(sd, add_str("AURA_DATA"), fdb->aura_data);
-		pc_setglobalreg(sd, add_str("SHOW_AURAS_MODE"), 0)
-			sd->aura_data = fdb->aura_data;
+		pc_setglobalreg(sd, add_str("SHOW_AURAS_MODE"), 0);
+		sd->aura_data = fdb->aura_data;
 		clif_send_aura(&sd->bl, sd->aura_data, AREA);
 	}
 #endif

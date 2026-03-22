@@ -918,17 +918,12 @@ void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 		if (battle_config.faction_ally_info_bl) {
 			if (battle_config.faction_ally_info_bl & bl->type && !faction_check_alliance(sd, bl)) {
 
-				// Check if the target is a player and has PK enabled
-				bool is_pk_on = (bl->type == BL_PC && ((TBL_PC*)bl)->status.fvf_pk_enabled);
-
-				if (is_pk_on) {
-					WFIFOHEAD(fd, 32);
-					WFIFOW(fd, 0) = 0x2dd;
-					WFIFOL(fd, 2) = bl->id;
-					safestrncpy((char*)WFIFOP(fd, 6), status_get_name(*bl), NAME_LENGTH);
-					WFIFOW(fd, 30) = faction_get_id(bl);
-					WFIFOSET(fd, packet_len(0x2dd));
-				}
+				WFIFOHEAD(fd, 32);
+				WFIFOW(fd, 0) = 0x2dd;
+				WFIFOL(fd, 2) = bl->id;
+				safestrncpy((char*)WFIFOP(fd, 6), status_get_name(*bl), NAME_LENGTH);
+				WFIFOW(fd, 30) = faction_get_id(bl);
+				WFIFOSET(fd, packet_len(0x2dd));
 			}
 		}
 		else {
@@ -1018,45 +1013,45 @@ int faction_get_id(const struct block_list* bl)
 		return 0;
 
 	switch (bl->type) {
-	case BL_PC:
-		return ((const TBL_PC*)bl)->status.faction_id;
+    case BL_PC:
+        return ((const TBL_PC*)bl)->status.faction_id;
 
-	case BL_PET:
-		return ((const TBL_PET*)bl)->master
-			? ((const TBL_PET*)bl)->master->status.faction_id
-			: 0;
+    case BL_PET:
+        return ((const TBL_PET*)bl)->master
+            ? ((const TBL_PET*)bl)->master->status.faction_id
+            : 0;
 
-	case BL_MOB:
-	{
-		map_session_data* msd;
-		const struct mob_data* md = (const TBL_MOB*)bl;
+    case BL_MOB:
+    {
+        map_session_data* msd;
+        const struct mob_data* md = (const TBL_MOB*)bl;
 
-		if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
-			return msd->status.faction_id;
+        if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
+            return msd->status.faction_id;
 
-		return md->faction_id;
-	}
+        return md->faction_id;
+    }
 
-	case BL_NPC:
-		return ((const TBL_NPC*)bl)->faction_id;
+    case BL_NPC:
+        return ((const TBL_NPC*)bl)->faction_id;
 
-	case BL_HOM:
-		return ((const TBL_HOM*)bl)->master
-			? ((const TBL_HOM*)bl)->master->status.faction_id
-			: 0;
+    case BL_HOM:
+        return ((const TBL_HOM*)bl)->master
+            ? ((const TBL_HOM*)bl)->master->status.faction_id
+            : 0;
 
-	case BL_MER:
-		return ((const TBL_MER*)bl)->master
-			? ((const TBL_MER*)bl)->master->status.faction_id
-			: 0;
+    case BL_MER:
+        return ((const TBL_MER*)bl)->master
+            ? ((const TBL_MER*)bl)->master->status.faction_id
+            : 0;
 
-	case BL_ELEM:
-		return ((const TBL_ELEM*)bl)->master
-			? ((const TBL_ELEM*)bl)->master->status.faction_id
-			: 0;
+    case BL_ELEM:
+        return ((const TBL_ELEM*)bl)->master
+            ? ((const TBL_ELEM*)bl)->master->status.faction_id
+            : 0;
 
-	case BL_SKILL:
-		return ((const TBL_SKILL*)bl)->group->faction_id;
+    case BL_SKILL:
+        return ((const TBL_SKILL*)bl)->group->faction_id;
 
 	default:
 		return 0;
