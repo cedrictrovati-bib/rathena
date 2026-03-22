@@ -968,6 +968,9 @@ void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 				clif_specialeffect_single(bl, fdb->aura[i], fd);
 			}
 		}
+
+		if (faction_check_leader(((TBL_PC*)bl)) && fdb->aura_leader > 0)
+			clif_specialeffect_single(bl, fdb->aura_leader, fd);
 	}
 }
 
