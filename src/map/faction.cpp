@@ -697,10 +697,14 @@ void faction_factionaura(map_session_data* sd)
 	if (sc == nullptr)
 		return;
 
-	if (sc->getSCE(SC_FACTION_AURA) && (group = skill_id2group(sc->getSCE(SC_FACTION_AURA)->val4))) {
-		skill_delunitgroup(group);
+	if (sc->getSCE(SC_FACTION_AURA)) {
+		if ((group = skill_id2group(sc->getSCE(SC_FACTION_AURA)->val4)))
+			skill_delunitgroup(group);
 		status_change_end(sd, SC_FACTION_AURA, INVALID_TIMER);
 	}
+
+	if (!map_getmapflag(sd->m, MF_FVF))
+		return;
 
 	group = skill_unitsetting(sd, FACTION_AURA, 1, sd->x, sd->y, 0);
 	if (group == nullptr)
@@ -708,7 +712,7 @@ void faction_factionaura(map_session_data* sd)
 
 	group->faction_id = sd->status.faction_id; // << important
 
-	sc_start4(sd, sd, SC_FACTION_AURA, 100, 1, sd->status.faction_id, 0, group->group_id, 600000);
+	sc_start4(sd, sd, SC_FACTION_AURA, 100, 1, sd->status.faction_id, 0, group->group_id, INFINITE_TICK);
 }
 
 void faction_calc(struct block_list* bl)
@@ -859,49 +863,10 @@ void faction_spawn(const struct block_list* bl)
 	faction_show_aura(bl);
 
 	if (faction_check_leader(((TBL_PC*)bl))) {
+		ShowMessage("You are the leader of your faction, applying leader aura.");
+		faction_factionaura(((TBL_PC*)bl));
 		faction_show_aura_leader(bl);
 	}
-}
-
-void faction_show_aura(const struct block_list* bl)
-{
-	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_get_id(bl));
-	const status_change* sc = NULL;
-	int i;
-
-	if (bl->type & (BL_CHAR | BL_NPC)) {
-		sc = status_get_sc(bl);
-		if (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE) || sc->getSCE(SC_CAMOUFLAGE))
-			return;
-	}
-
-	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
-		return;
-
-	if (battle_config.faction_aura_bl & bl->type) {
-		for (i = 0; i < MAX_AURA_EFF; i++)
-			if (fdb->aura[i] > 0)
-				clif_specialeffect(bl, fdb->aura[i], AREA);
-	}
-}
-
-void faction_show_aura_leader(const struct block_list* bl)
-{
-	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_get_id(bl));
-	const status_change* sc = NULL;
-	int i;
-
-	if (bl->type & (BL_CHAR | BL_NPC)) {
-		sc = status_get_sc(bl);
-		if (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE) || sc->getSCE(SC_CAMOUFLAGE))
-			return;
-	}
-
-	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
-		return;
-
-	if (fdb->aura_leader > 0)
-		clif_specialeffect(bl, fdb->aura_leader, AREA);
 }
 
 void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
@@ -972,6 +937,47 @@ void faction_getareachar_unit(map_session_data* sd, struct block_list* bl)
 		if (faction_check_leader(((TBL_PC*)bl)) && fdb->aura_leader > 0)
 			clif_specialeffect_single(bl, fdb->aura_leader, fd);
 	}
+}
+
+void faction_show_aura(const struct block_list* bl)
+{
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_get_id(bl));
+	const status_change* sc = NULL;
+	int i;
+
+	if (bl->type & (BL_CHAR | BL_NPC)) {
+		sc = status_get_sc(bl);
+		if (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE) || sc->getSCE(SC_CAMOUFLAGE))
+			return;
+	}
+
+	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
+		return;
+
+	if (battle_config.faction_aura_bl & bl->type) {
+		for (i = 0; i < MAX_AURA_EFF; i++)
+			if (fdb->aura[i] > 0)
+				clif_specialeffect(bl, fdb->aura[i], AREA);
+	}
+}
+
+void faction_show_aura_leader(const struct block_list* bl)
+{
+	std::shared_ptr<s_faction_db> fdb = faction_db.find(faction_get_id(bl));
+	const status_change* sc = NULL;
+	int i;
+
+	if (bl->type & (BL_CHAR | BL_NPC)) {
+		sc = status_get_sc(bl);
+		if (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE) || sc->getSCE(SC_CAMOUFLAGE))
+			return;
+	}
+
+	if (!((battle_config.faction_aura_settings & 1 && map_getmapflag(bl->m, MF_FVF)) || battle_config.faction_aura_settings & 2))
+		return;
+
+	if (fdb->aura_leader > 0)
+		clif_specialeffect(bl, fdb->aura_leader, AREA);
 }
 
 int faction_aura_clear(struct block_list* bl, va_list ap)

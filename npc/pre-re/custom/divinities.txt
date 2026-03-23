@@ -18,14 +18,15 @@ hero_ent2,90,149,4	script	Aetherials God	4_EP18_DEMIFREYA,{
             mes "The bloodlust fades. You are now protected from faction combat.";
             break;
 
-        case 3:
+        case 3:		
+			setfaction(2);
 			setfactionleader(2,getcharid(0));
             mes "[Aetherials God]";
-			mes "Now you're the Faction Leader '"+factioninfo(@2,0)+"'"; 
-            break;
+			mes "Now you're the Faction Leader '"+factioninfo(2,0)+"'"; 
+				break;
 
-        case 4:
-            mes "[Aetherials God]";
+			case 4:
+				mes "[Aetherials God]";
             mes "Very well. May your path remain peaceful.";
             break;
     }
@@ -57,6 +58,7 @@ nif_dun01,146,198,4	script	Remnants God	4_CS_RIGEL,{
             break;			
 
         case 3:
+			setfaction(3);
 			setfactionleader(3,getcharid(0));
             mes "[Aetherials God]";
 			mes "Now you're the Faction Leader '"+factioninfo(3,0)+"'"; 

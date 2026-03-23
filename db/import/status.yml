@@ -90,6 +90,7 @@ Body:
     Icon: EFST_MANU_ATK
     DurationLookup: FACTION_AURA
     Flags:
+      NoRemoveOnDead: true
       NoClearbuff: true
       NoSave: true
       NoDispell: true

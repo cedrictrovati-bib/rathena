@@ -11,7 +11,7 @@
 //============================================================
 
 // Cities ========================
-ayo_in01	mapflag	fvf
+//ayo_in01	mapflag	fvf
 // ayo_in02	mapflag	fvf
 // alberta_in	mapflag	fvf
 // alberta	mapflag	fvf
@@ -61,7 +61,7 @@ ayo_in01	mapflag	fvf
 // prt_castle	mapflag	fvf
 // prt_church	mapflag	fvf
 // prt_in	mapflag	fvf
-prontera	mapflag	fvf
+//prontera	mapflag	fvf
 prt_fild08	mapflag	fvf
 // sec_in01	mapflag	fvf
 // job_sword1	mapflag	fvf
